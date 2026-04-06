@@ -1,0 +1,185 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect to Mistral",
+        "description": "Enter your Mistral API key. You can create one at [{instructions_url}]({instructions_url}).",
+        "data": {
+          "api_key": "API Key"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Re-authenticate with Mistral",
+        "description": "Please re-enter your Mistral API key.",
+        "data": {
+          "api_key": "API Key"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "Invalid API key",
+      "unknown": "Unexpected error"
+    },
+    "abort": {
+      "already_configured": "This API key is already configured",
+      "reauth_successful": "Re-authentication was successful"
+    }
+  },
+  "config_subentries": {
+    "conversation": {
+      "entry_type": "Conversation agent",
+      "initiate_flow": {
+        "reconfigure": "Reconfigure conversation agent",
+        "user": "Add conversation agent"
+      },
+      "step": {
+        "init": {
+          "title": "Mistral Conversation",
+          "description": "Set up this conversation agent.",
+          "data": {
+            "name": "Name",
+            "prompt": "Instructions",
+            "llm_hass_api": "Control Home Assistant",
+            "recommended": "Use recommended model settings"
+          },
+          "data_description": {
+            "prompt": "Instructions for the AI on how to respond and what it can do.",
+            "llm_hass_api": "Let the AI call Home Assistant services and read state."
+          }
+        },
+        "advanced": {
+          "title": "Advanced Settings",
+          "description": "Fine-tune the model parameters.",
+          "data": {
+            "chat_model": "Model",
+            "max_tokens": "Maximum tokens",
+            "top_p": "Top P",
+            "temperature": "Temperature",
+            "safe_prompt": "Safe prompt"
+          },
+          "data_description": {
+            "chat_model": "Chat model for completions.",
+            "max_tokens": "Max tokens in the response.",
+            "top_p": "Nucleus sampling (0–1).",
+            "temperature": "Randomness (0–1.5). Lower = more deterministic.",
+            "safe_prompt": "Enable Mistral’s built-in safety guardrails."
+          }
+        }
+      },
+      "abort": {
+        "entry_not_loaded": "Cannot configure while the entry is disabled.",
+        "reconfigure_successful": "[%key:common::config_flow::abort::reconfigure_successful%]"
+      }
+    },
+    "ai_task_data": {
+      "entry_type": "AI task",
+      "initiate_flow": {
+        "reconfigure": "Reconfigure AI task",
+        "user": "Add AI task"
+      },
+      "step": {
+        "init": {
+          "title": "Mistral AI Task",
+          "description": "Set up this AI task agent.",
+          "data": {
+            "name": "Name",
+            "recommended": "Use recommended model settings"
+          }
+        },
+        "advanced": {
+          "title": "Advanced Settings",
+          "description": "Fine-tune the model parameters.",
+          "data": {
+            "chat_model": "Model",
+            "max_tokens": "Maximum tokens",
+            "top_p": "Top P",
+            "temperature": "Temperature",
+            "safe_prompt": "Safe prompt"
+          },
+          "data_description": {
+            "chat_model": "Model for AI tasks.",
+            "max_tokens": "Max tokens in the response.",
+            "top_p": "Nucleus sampling (0–1).",
+            "temperature": "Randomness (0–1.5). Lower = more deterministic.",
+            "safe_prompt": "Enable Mistral’s built-in safety guardrails."
+          }
+        }
+      },
+      "abort": {
+        "entry_not_loaded": "Cannot configure while the entry is disabled.",
+        "reconfigure_successful": "[%key:common::config_flow::abort::reconfigure_successful%]"
+      }
+    },
+    "stt": {
+      "entry_type": "Speech-to-text",
+      "initiate_flow": {
+        "reconfigure": "Reconfigure speech-to-text service",
+        "user": "Add speech-to-text service"
+      },
+      "step": {
+        "init": {
+          "title": "Mistral Speech-to-Text",
+          "description": "Set up Voxtral STT.",
+          "data": {
+            "name": "Name",
+            "prompt": "Context prompt",
+            "chat_model": "Model"
+          },
+          "data_description": {
+            "prompt": "Optional context to aid transcription accuracy (e.g., domain-specific terms).",
+            "chat_model": "The Voxtral model to use for speech-to-text."
+          }
+        }
+      },
+      "abort": {
+        "entry_not_loaded": "Cannot configure while the entry is disabled.",
+        "reconfigure_successful": "[%key:common::config_flow::abort::reconfigure_successful%]"
+      }
+    },
+    "tts": {
+      "entry_type": "Text-to-speech",
+      "initiate_flow": {
+        "reconfigure": "Reconfigure text-to-speech service",
+        "user": "Add text-to-speech service"
+      },
+      "step": {
+        "init": {
+          "title": "Mistral Text-to-Speech",
+          "description": "Set up Voxtral TTS.",
+          "data": {
+            "name": "Name",
+            "tts_voice": "Voice ID"
+          },
+          "data_description": {
+            "tts_voice": "The voice ID to use (e.g., 'jessica'). Leave empty for default."
+          }
+        }
+      },
+      "abort": {
+        "entry_not_loaded": "Cannot configure while the entry is disabled.",
+        "reconfigure_successful": "[%key:common::config_flow::abort::reconfigure_successful%]"
+      }
+    }
+  },
+  "services": {
+    "generate_content": {
+      "name": "Generate content",
+      "description": "Send a prompt to Mistral and get a response.",
+      "fields": {
+        "config_entry": {
+          "name": "Config entry",
+          "description": "The Mistral config entry to use."
+        },
+        "prompt": {
+          "name": "Prompt",
+          "description": "The prompt to send to Mistral."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "invalid_config_entry": {
+      "message": "Invalid config entry: {config_entry}"
+    }
+  }
+}

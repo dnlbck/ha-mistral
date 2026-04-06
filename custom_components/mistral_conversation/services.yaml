@@ -1,0 +1,14 @@
+generate_content:
+  name: Generate content
+  description: Send a prompt to Mistral and get a response.
+  fields:
+    config_entry:
+      required: true
+      selector:
+        config_entry:
+          integration: mistral_conversation
+    prompt:
+      required: true
+      example: "What is the weather like today?"
+      selector:
+        text:

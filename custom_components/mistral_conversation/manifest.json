@@ -1,0 +1,15 @@
+{
+  "domain": "mistral_conversation",
+  "name": "Mistral Conversation",
+  "after_dependencies": ["assist_pipeline", "intent"],
+  "codeowners": ["@dnlbck"],
+  "config_flow": true,
+  "dependencies": ["conversation"],
+  "documentation": "https://github.com/dnlbck/ha-mistral",
+  "integration_type": "service",
+  "iot_class": "cloud_push",
+  "issue_tracker": "https://github.com/dnlbck/ha-mistral/issues",
+  "loggers": ["mistralai"],
+  "requirements": ["mistralai>=2.3.0"],
+  "version": "1.0.0"
+}
