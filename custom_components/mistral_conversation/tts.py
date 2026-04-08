@@ -137,11 +137,7 @@ class MistralTTSEntity(TextToSpeechEntity, MistralBaseLLMEntity):
     @property
     def default_options(self) -> Mapping[str, Any]:
         """Return a mapping with the default options."""
-        voice = (
-            self.subentry.data.get(CONF_TTS_VOICE)
-            or self._default_voice_id
-            or ""
-        )
+        voice = self.subentry.data.get(CONF_TTS_VOICE) or self._default_voice_id or ""
         return {
             ATTR_VOICE: voice,
             ATTR_PREFERRED_FORMAT: "mp3",

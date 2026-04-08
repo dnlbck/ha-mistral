@@ -79,9 +79,7 @@ def _format_tool(
     }
 
 
-def _mistral_tool_call_id(
-    ha_id: str, id_map: dict[str, str]
-) -> str:
+def _mistral_tool_call_id(ha_id: str, id_map: dict[str, str]) -> str:
     """Convert an HA tool call ID to a Mistral-compatible 9-char alphanumeric ID."""
     if ha_id in id_map:
         return id_map[ha_id]
@@ -118,9 +116,7 @@ def _convert_content_to_messages(
                     "role": "tool",
                     "name": content.tool_name,
                     "content": json_dumps(content.tool_result),
-                    "tool_call_id": _mistral_tool_call_id(
-                        content.tool_call_id, id_map
-                    ),
+                    "tool_call_id": _mistral_tool_call_id(content.tool_call_id, id_map),
                 }
             )
             continue
@@ -137,9 +133,7 @@ def _convert_content_to_messages(
                 for tool_call in content.tool_calls:
                     tool_calls.append(
                         {
-                            "id": _mistral_tool_call_id(
-                                tool_call.id, id_map
-                            ),
+                            "id": _mistral_tool_call_id(tool_call.id, id_map),
                             "type": "function",
                             "function": {
                                 "name": tool_call.tool_name,
