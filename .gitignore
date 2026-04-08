@@ -11,3 +11,4 @@ venv/
 .env
 .ruff_cache/
 refs/
+.vscode/
