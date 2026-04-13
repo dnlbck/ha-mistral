@@ -36,7 +36,10 @@ async def async_setup_entry(
 class MistralTaskEntity(ai_task.AITaskEntity, MistralBaseLLMEntity):
     """Mistral AI task entity."""
 
-    _attr_supported_features = ai_task.AITaskEntityFeature.GENERATE_DATA
+    _attr_supported_features = (
+        ai_task.AITaskEntityFeature.GENERATE_DATA
+        | ai_task.AITaskEntityFeature.SUPPORT_ATTACHMENTS
+    )
 
     def __init__(self, entry: MistralConfigEntry, subentry: ConfigSubentry) -> None:
         """Initialize the entity."""

@@ -55,14 +55,18 @@
             "max_tokens": "Maximum tokens",
             "top_p": "Top P",
             "temperature": "Temperature",
-            "safe_prompt": "Safe prompt"
+            "safe_prompt": "Safe prompt",
+            "reasoning_effort": "Reasoning effort",
+            "web_search": "Web search"
           },
           "data_description": {
             "chat_model": "Chat model for completions.",
             "max_tokens": "Max tokens in the response.",
             "top_p": "Nucleus sampling (0–1).",
             "temperature": "Randomness (0–1.5). Lower = more deterministic.",
-            "safe_prompt": "Enable Mistral’s built-in safety guardrails."
+            "safe_prompt": "Enable Mistral's built-in safety guardrails.",
+            "reasoning_effort": "Controls how much the model reasons before answering. 'high' adds a thinking step with increased token usage.",
+            "web_search": "Allow the model to search the web for up-to-date information."
           }
         }
       },
@@ -94,14 +98,16 @@
             "max_tokens": "Maximum tokens",
             "top_p": "Top P",
             "temperature": "Temperature",
-            "safe_prompt": "Safe prompt"
+            "safe_prompt": "Safe prompt",
+            "reasoning_effort": "Reasoning effort"
           },
           "data_description": {
             "chat_model": "Model for AI tasks.",
             "max_tokens": "Max tokens in the response.",
             "top_p": "Nucleus sampling (0–1).",
             "temperature": "Randomness (0–1.5). Lower = more deterministic.",
-            "safe_prompt": "Enable Mistral’s built-in safety guardrails."
+            "safe_prompt": "Enable Mistral's built-in safety guardrails.",
+            "reasoning_effort": "Controls how much the model reasons before answering. 'high' adds a thinking step with increased token usage."
           }
         }
       },

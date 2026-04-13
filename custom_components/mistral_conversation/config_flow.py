@@ -45,11 +45,13 @@ from .const import (
     CONF_CHAT_MODEL,
     CONF_MAX_TOKENS,
     CONF_PROMPT,
+    CONF_REASONING_EFFORT,
     CONF_RECOMMENDED,
     CONF_SAFE_PROMPT,
     CONF_TEMPERATURE,
     CONF_TOP_P,
     CONF_TTS_VOICE,
+    CONF_WEB_SEARCH,
     DEFAULT_AI_TASK_NAME,
     DEFAULT_CONVERSATION_NAME,
     DEFAULT_STT_NAME,
@@ -59,12 +61,14 @@ from .const import (
     RECOMMENDED_CHAT_MODEL,
     RECOMMENDED_CONVERSATION_OPTIONS,
     RECOMMENDED_MAX_TOKENS,
+    RECOMMENDED_REASONING_EFFORT,
     RECOMMENDED_SAFE_PROMPT,
     RECOMMENDED_STT_MODEL,
     RECOMMENDED_STT_OPTIONS,
     RECOMMENDED_TEMPERATURE,
     RECOMMENDED_TOP_P,
     RECOMMENDED_TTS_OPTIONS,
+    RECOMMENDED_WEB_SEARCH,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -343,7 +347,24 @@ class MistralSubentryFlowHandler(ConfigSubentryFlow):
                 CONF_SAFE_PROMPT,
                 default=RECOMMENDED_SAFE_PROMPT,
             ): bool,
+            vol.Optional(
+                CONF_REASONING_EFFORT,
+                default=RECOMMENDED_REASONING_EFFORT,
+            ): SelectSelector(
+                SelectSelectorConfig(
+                    options=["none", "high"],
+                    mode=SelectSelectorMode.DROPDOWN,
+                )
+            ),
         }
+
+        if self._subentry_type == "conversation":
+            step_schema[
+                vol.Optional(
+                    CONF_WEB_SEARCH,
+                    default=RECOMMENDED_WEB_SEARCH,
+                )
+            ] = bool
 
         if user_input is not None:
             options.update(user_input)

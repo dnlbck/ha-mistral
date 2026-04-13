@@ -1,6 +1,9 @@
 # Mistral Conversation
 
-[![HACS Validation](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration)
+[![HACS Custom](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=dnlbck&repository=ha-mistral&category=integration)
+[![GitHub Release](https://img.shields.io/github/v/release/dnlbck/ha-mistral?sort=semver)](https://github.com/dnlbck/ha-mistral/releases)
+[![Validate](https://github.com/dnlbck/ha-mistral/actions/workflows/validate.yml/badge.svg)](https://github.com/dnlbck/ha-mistral/actions/workflows/validate.yml)
+[![Lint](https://github.com/dnlbck/ha-mistral/actions/workflows/lint.yml/badge.svg)](https://github.com/dnlbck/ha-mistral/actions/workflows/lint.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 A Home Assistant custom integration for [Mistral AI](https://mistral.ai/) — conversation, AI tasks, speech-to-text, and text-to-speech.

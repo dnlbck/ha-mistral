@@ -3,7 +3,10 @@
 from __future__ import annotations
 
 import asyncio
+import base64
 import json
+from mimetypes import guess_file_type
+from pathlib import Path
 import random
 import string
 from collections.abc import AsyncGenerator, Callable, Iterable
@@ -15,6 +18,7 @@ from voluptuous_openapi import convert
 
 from homeassistant.components import conversation
 from homeassistant.config_entries import ConfigSubentry
+from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import device_registry as dr, llm
 from homeassistant.helpers.entity import Entity
@@ -27,18 +31,22 @@ from .const import (
     BACKOFF_MULTIPLIER,
     CONF_CHAT_MODEL,
     CONF_MAX_TOKENS,
+    CONF_REASONING_EFFORT,
     CONF_SAFE_PROMPT,
     CONF_TEMPERATURE,
     CONF_TOP_P,
+    CONF_WEB_SEARCH,
     DOMAIN,
     LOGGER,
     RECOMMENDED_CHAT_MODEL,
     RECOMMENDED_MAX_TOKENS,
+    RECOMMENDED_REASONING_EFFORT,
     RECOMMENDED_SAFE_PROMPT,
     RECOMMENDED_STT_MODEL,
     RECOMMENDED_TEMPERATURE,
     RECOMMENDED_TOP_P,
     RECOMMENDED_TTS_MODEL,
+    RECOMMENDED_WEB_SEARCH,
 )
 
 if TYPE_CHECKING:
@@ -98,6 +106,35 @@ def _mistral_tool_call_id(ha_id: str, id_map: dict[str, str]) -> str:
         short = "".join(random.choices(string.ascii_letters + string.digits, k=9))
     id_map[ha_id] = short
     return short
+
+
+async def async_prepare_files_for_prompt(
+    hass: HomeAssistant, files: list[tuple[Path, str | None]]
+) -> list[dict[str, Any]]:
+    """Convert file attachments to Mistral vision content items."""
+
+    def _prepare() -> list[dict[str, Any]]:
+        content: list[dict[str, Any]] = []
+        for file_path, mime_type in files:
+            if not file_path.exists():
+                raise HomeAssistantError(f"`{file_path}` does not exist")
+            if mime_type is None:
+                mime_type = guess_file_type(file_path)[0]
+            if not mime_type or not mime_type.startswith("image/"):
+                raise HomeAssistantError(
+                    "Only images are supported by the Mistral Vision API, "
+                    f"`{file_path}` is not an image file"
+                )
+            base64_data = base64.b64encode(file_path.read_bytes()).decode("utf-8")
+            content.append(
+                {
+                    "type": "image_url",
+                    "image_url": f"data:{mime_type};base64,{base64_data}",
+                }
+            )
+        return content
+
+    return await hass.async_add_executor_job(_prepare)
 
 
 def _convert_content_to_messages(
@@ -172,6 +209,9 @@ async def _transform_stream(
             continue
 
         delta = chunk.choices[0].delta
+
+        if hasattr(delta, "reasoning_content") and delta.reasoning_content:
+            yield {"thinking_content": delta.reasoning_content}
 
         if delta.content:
             yield {"content": delta.content}
@@ -260,6 +300,26 @@ class MistralBaseLLMEntity(Entity):
 
         messages = _convert_content_to_messages(chat_log.content)
 
+        # Handle image/file attachments for vision models
+        last_content = chat_log.content[-1]
+        if (
+            last_content.role == "user"
+            and hasattr(last_content, "attachments")
+            and last_content.attachments
+        ):
+            files = await async_prepare_files_for_prompt(
+                self.hass,
+                [(a.path, a.mime_type) for a in last_content.attachments],
+            )
+            last_message = messages[-1]
+            assert last_message["role"] == "user" and isinstance(
+                last_message["content"], str
+            )
+            last_message["content"] = [
+                {"type": "text", "text": last_message["content"]},
+                *files,
+            ]
+
         model = options.get(CONF_CHAT_MODEL, RECOMMENDED_CHAT_MODEL)
 
         model_args: dict[str, Any] = {
@@ -271,12 +331,21 @@ class MistralBaseLLMEntity(Entity):
             "safe_prompt": options.get(CONF_SAFE_PROMPT, RECOMMENDED_SAFE_PROMPT),
         }
 
+        reasoning_effort = options.get(
+            CONF_REASONING_EFFORT, RECOMMENDED_REASONING_EFFORT
+        )
+        if reasoning_effort != "none":
+            model_args["reasoning_effort"] = reasoning_effort
+
         tools: list[dict[str, Any]] = []
         if chat_log.llm_api:
             tools = [
                 _format_tool(tool, chat_log.llm_api.custom_serializer)
                 for tool in chat_log.llm_api.tools
             ]
+
+        if options.get(CONF_WEB_SEARCH, RECOMMENDED_WEB_SEARCH):
+            tools.append({"type": "web_search"})
 
         if structure and structure_name:
             model_args["response_format"] = {"type": "json_object"}
