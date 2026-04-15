@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import base64
 import json
+from json import JSONDecodeError
 from mimetypes import guess_file_type
 from pathlib import Path
 import random
@@ -23,6 +24,7 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import device_registry as dr, llm
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.json import json_dumps
+from homeassistant.util.json import json_loads
 
 from .const import (
     BACKOFF_INITIAL_DELAY,
@@ -240,8 +242,8 @@ async def _transform_stream(
             tool_inputs = []
             for tc_data in current_tool_calls.values():
                 try:
-                    args = json.loads(tc_data["arguments"])
-                except json.JSONDecodeError:
+                    args = json_loads(tc_data["arguments"])
+                except JSONDecodeError:
                     args = {}
                 tool_inputs.append(
                     llm.ToolInput(
@@ -312,9 +314,12 @@ class MistralBaseLLMEntity(Entity):
                 [(a.path, a.mime_type) for a in last_content.attachments],
             )
             last_message = messages[-1]
-            assert last_message["role"] == "user" and isinstance(
+            if last_message["role"] != "user" or not isinstance(
                 last_message["content"], str
-            )
+            ):
+                raise HomeAssistantError(
+                    "Expected a user message with string content when attachments are present"
+                )
             last_message["content"] = [
                 {"type": "text", "text": last_message["content"]},
                 *files,

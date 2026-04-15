@@ -15,4 +15,4 @@ generate_content:
       required: true
       example: "What is the weather like today?"
       selector:
-        text:
+        text: {}
