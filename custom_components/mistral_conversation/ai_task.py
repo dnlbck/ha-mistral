@@ -80,9 +80,7 @@ class MistralTaskEntity(ai_task.AITaskEntity, MistralBaseLLMEntity):
                 err,
                 text,
             )
-            raise HomeAssistantError(
-                "Error with Mistral structured response"
-            ) from err
+            raise HomeAssistantError("Error with Mistral structured response") from err
 
         return ai_task.GenDataTaskResult(
             conversation_id=chat_log.conversation_id,
