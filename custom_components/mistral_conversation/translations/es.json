@@ -1,0 +1,191 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Conectar con Mistral",
+        "description": "Introduce tu clave API de Mistral. Puedes crear una en [{instructions_url}]({instructions_url}).",
+        "data": {
+          "api_key": "Clave API"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Volver a autenticarse con Mistral",
+        "description": "Por favor, vuelve a introducir tu clave API de Mistral.",
+        "data": {
+          "api_key": "Clave API"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "Clave API no válida",
+      "unknown": "Error inesperado"
+    },
+    "abort": {
+      "already_configured": "Esta clave API ya está configurada",
+      "reauth_successful": "La reautenticación se ha completado correctamente"
+    }
+  },
+  "config_subentries": {
+    "conversation": {
+      "entry_type": "Agente de conversación",
+      "initiate_flow": {
+        "reconfigure": "Reconfigurar agente de conversación",
+        "user": "Añadir agente de conversación"
+      },
+      "step": {
+        "init": {
+          "title": "Conversación Mistral",
+          "description": "Configura este agente de conversación.",
+          "data": {
+            "name": "Nombre",
+            "prompt": "Instrucciones",
+            "llm_hass_api": "Controlar Home Assistant",
+            "recommended": "Usar ajustes de modelo recomendados"
+          },
+          "data_description": {
+            "prompt": "Instrucciones para la IA sobre cómo responder y qué puede hacer.",
+            "llm_hass_api": "Permite que la IA llame a servicios de Home Assistant y lea estados."
+          }
+        },
+        "advanced": {
+          "title": "Ajustes avanzados",
+          "description": "Ajusta los parámetros del modelo.",
+          "data": {
+            "chat_model": "Modelo",
+            "max_tokens": "Tokens máximos",
+            "top_p": "Top P",
+            "temperature": "Temperatura",
+            "safe_prompt": "Prompt seguro",
+            "reasoning_effort": "Esfuerzo de razonamiento",
+            "web_search": "Búsqueda web"
+          },
+          "data_description": {
+            "chat_model": "Modelo de chat para completaciones.",
+            "max_tokens": "Máximo de tokens en la respuesta.",
+            "top_p": "Muestreo de núcleo (0–1).",
+            "temperature": "Aleatoriedad (0–1.5). Valores más bajos = más determinista.",
+            "safe_prompt": "Activa las barreras de seguridad integradas de Mistral.",
+            "reasoning_effort": "Controla cuánto razona el modelo antes de responder. 'high' añade un paso de razonamiento con mayor consumo de tokens.",
+            "web_search": "Permitir que el modelo busque en la web información actualizada."
+          }
+        }
+      },
+      "abort": {
+        "entry_not_loaded": "No se puede configurar mientras la entrada está desactivada.",
+        "reconfigure_successful": "[%key:common::config_flow::abort::reconfigure_successful%]"
+      }
+    },
+    "ai_task_data": {
+      "entry_type": "Tarea de IA",
+      "initiate_flow": {
+        "reconfigure": "Reconfigurar tarea de IA",
+        "user": "Añadir tarea de IA"
+      },
+      "step": {
+        "init": {
+          "title": "Tarea de IA Mistral",
+          "description": "Configura este agente de tareas de IA.",
+          "data": {
+            "name": "Nombre",
+            "recommended": "Usar ajustes de modelo recomendados"
+          }
+        },
+        "advanced": {
+          "title": "Ajustes avanzados",
+          "description": "Ajusta los parámetros del modelo.",
+          "data": {
+            "chat_model": "Modelo",
+            "max_tokens": "Tokens máximos",
+            "top_p": "Top P",
+            "temperature": "Temperatura",
+            "safe_prompt": "Prompt seguro",
+            "reasoning_effort": "Esfuerzo de razonamiento"
+          },
+          "data_description": {
+            "chat_model": "Modelo para tareas de IA.",
+            "max_tokens": "Máximo de tokens en la respuesta.",
+            "top_p": "Muestreo de núcleo (0–1).",
+            "temperature": "Aleatoriedad (0–1.5). Valores más bajos = más determinista.",
+            "safe_prompt": "Activa las barreras de seguridad integradas de Mistral.",
+            "reasoning_effort": "Controla cuánto razona el modelo antes de responder. 'high' añade un paso de razonamiento con mayor consumo de tokens."
+          }
+        }
+      },
+      "abort": {
+        "entry_not_loaded": "No se puede configurar mientras la entrada está desactivada.",
+        "reconfigure_successful": "[%key:common::config_flow::abort::reconfigure_successful%]"
+      }
+    },
+    "stt": {
+      "entry_type": "Voz a texto",
+      "initiate_flow": {
+        "reconfigure": "Reconfigurar servicio de voz a texto",
+        "user": "Añadir servicio de voz a texto"
+      },
+      "step": {
+        "init": {
+          "title": "Mistral Voz a Texto",
+          "description": "Configurar Voxtral STT.",
+          "data": {
+            "name": "Nombre",
+            "prompt": "Prompt de contexto",
+            "chat_model": "Modelo"
+          },
+          "data_description": {
+            "prompt": "Contexto opcional para mejorar la precisión de la transcripción (p. ej., términos específicos del dominio).",
+            "chat_model": "El modelo Voxtral a usar para voz a texto."
+          }
+        }
+      },
+      "abort": {
+        "entry_not_loaded": "No se puede configurar mientras la entrada está desactivada.",
+        "reconfigure_successful": "[%key:common::config_flow::abort::reconfigure_successful%]"
+      }
+    },
+    "tts": {
+      "entry_type": "Texto a voz",
+      "initiate_flow": {
+        "reconfigure": "Reconfigurar servicio de texto a voz",
+        "user": "Añadir servicio de texto a voz"
+      },
+      "step": {
+        "init": {
+          "title": "Mistral Texto a Voz",
+          "description": "Configurar Voxtral TTS.",
+          "data": {
+            "name": "Nombre",
+            "tts_voice": "ID de voz"
+          },
+          "data_description": {
+            "tts_voice": "El ID de voz a usar (p. ej. 'jessica'). Déjalo vacío para usar el predeterminado."
+          }
+        }
+      },
+      "abort": {
+        "entry_not_loaded": "No se puede configurar mientras la entrada está desactivada.",
+        "reconfigure_successful": "[%key:common::config_flow::abort::reconfigure_successful%]"
+      }
+    }
+  },
+  "services": {
+    "generate_content": {
+      "name": "Generar contenido",
+      "description": "Envía un prompt a Mistral y obtén una respuesta.",
+      "fields": {
+        "config_entry": {
+          "name": "Entrada de configuración",
+          "description": "La entrada de configuración de Mistral a usar."
+        },
+        "prompt": {
+          "name": "Prompt",
+          "description": "El prompt a enviar a Mistral."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "invalid_config_entry": {
+      "message": "Entrada de configuración no válida: {config_entry}"
+    }
+  }
+}

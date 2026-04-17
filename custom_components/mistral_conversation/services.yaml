@@ -3,12 +3,16 @@ generate_content:
   description: Send a prompt to Mistral and get a response.
   fields:
     config_entry:
+      name: Config entry
+      description: The Mistral Conversation config entry to use.
       required: true
       selector:
         config_entry:
           integration: mistral_conversation
     prompt:
+      name: Prompt
+      description: The text prompt to send to Mistral.
       required: true
       example: "What is the weather like today?"
       selector:
-        text:
+        text: {}

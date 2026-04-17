@@ -128,9 +128,11 @@
           "description": "Set up Voxtral STT.",
           "data": {
             "name": "Name",
+            "prompt": "Context prompt",
             "chat_model": "Model"
           },
           "data_description": {
+            "prompt": "Optional context to aid transcription accuracy (e.g., domain-specific terms).",
             "chat_model": "The Voxtral model to use for speech-to-text."
           }
         }

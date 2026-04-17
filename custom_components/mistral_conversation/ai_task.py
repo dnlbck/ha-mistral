@@ -1,20 +1,24 @@
 """AI Task support for Mistral."""
 
-import json
 from json import JSONDecodeError
+import logging
+from typing import TYPE_CHECKING
 
 from homeassistant.components import ai_task, conversation
-from homeassistant.config_entries import ConfigSubentry
-from homeassistant.const import CONF_LLM_HASS_API
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity_platform import (
     AddConfigEntryEntitiesCallback,
 )
+from homeassistant.util.json import json_loads
 
 from . import MistralConfigEntry
-from .const import CONF_PROMPT, DOMAIN
-from .entity import MAX_TOOL_ITERATIONS, MistralBaseLLMEntity
+from .entity import MistralBaseLLMEntity
+
+if TYPE_CHECKING:
+    from homeassistant.config_entries import ConfigSubentry
+
+_LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(
@@ -36,9 +40,12 @@ async def async_setup_entry(
 class MistralTaskEntity(ai_task.AITaskEntity, MistralBaseLLMEntity):
     """Mistral AI task entity."""
 
-    _attr_supported_features = ai_task.AITaskEntityFeature.GENERATE_DATA
+    _attr_supported_features = (
+        ai_task.AITaskEntityFeature.GENERATE_DATA
+        | ai_task.AITaskEntityFeature.SUPPORT_ATTACHMENTS
+    )
 
-    def __init__(self, entry: MistralConfigEntry, subentry: ConfigSubentry) -> None:
+    def __init__(self, entry: MistralConfigEntry, subentry: "ConfigSubentry") -> None:
         """Initialize the entity."""
         super().__init__(entry, subentry)
 
@@ -48,61 +55,34 @@ class MistralTaskEntity(ai_task.AITaskEntity, MistralBaseLLMEntity):
         chat_log: conversation.ChatLog,
     ) -> ai_task.GenDataTaskResult:
         """Handle a generate data task."""
-        options = self.subentry.data
-
-        await chat_log.async_provide_llm_data(
-            task.as_llm_context(DOMAIN),
-            options.get(CONF_LLM_HASS_API),
-            options.get(CONF_PROMPT),
-        )
-
-        if task.structure:
-            chat_log.async_add_user_content(
-                conversation.UserContent(
-                    content=task.instructions,
-                    role="user",
-                )
-            )
-
-            schema_desc = (
-                f"Respond with a JSON object that matches this schema: {task.structure}"
-            )
-            chat_log.extra_system_prompt = schema_desc
-
         await self._async_handle_chat_log(
-            chat_log, task.name, task.structure, max_iterations=MAX_TOOL_ITERATIONS
+            chat_log, task.name, task.structure, max_iterations=1000
         )
+
+        if not isinstance(chat_log.content[-1], conversation.AssistantContent):
+            raise HomeAssistantError(
+                "Last content in chat log is not an AssistantContent"
+            )
+
+        text = chat_log.content[-1].content or ""
 
         if not task.structure:
             return ai_task.GenDataTaskResult(
-                conversation=conversation.async_get_result_from_chat_log(
-                    None, chat_log
-                ),
-                data=None,
+                conversation_id=chat_log.conversation_id,
+                data=text,
             )
 
-        text = chat_log.content[-1]
-        if not isinstance(text, conversation.AssistantContent):
-            raise HomeAssistantError("Expected assistant response from Mistral")
-
-        content = text.content or ""
-
-        # Strip markdown code fences if present
-        if content.startswith("```"):
-            lines = content.split("\n")
-            lines = lines[1:]  # Remove opening ```json or ```
-            if lines and lines[-1].strip() == "```":
-                lines = lines[:-1]
-            content = "\n".join(lines)
-
         try:
-            data = json.loads(content)
-        except (JSONDecodeError, ValueError) as err:
-            raise HomeAssistantError(
-                f"Failed to parse Mistral response as JSON: {err}"
-            ) from err
+            data = json_loads(text)
+        except JSONDecodeError as err:
+            _LOGGER.error(
+                "Failed to parse JSON response: %s. Response: %s",
+                err,
+                text,
+            )
+            raise HomeAssistantError("Error with Mistral structured response") from err
 
         return ai_task.GenDataTaskResult(
-            conversation=conversation.async_get_result_from_chat_log(None, chat_log),
+            conversation_id=chat_log.conversation_id,
             data=data,
         )

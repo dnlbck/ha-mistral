@@ -1,0 +1,191 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Verbinden met Mistral",
+        "description": "Voer je Mistral API-sleutel in. Je kunt er een aanmaken op [{instructions_url}]({instructions_url}).",
+        "data": {
+          "api_key": "API-sleutel"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Opnieuw authenticeren bij Mistral",
+        "description": "Voer je Mistral API-sleutel opnieuw in.",
+        "data": {
+          "api_key": "API-sleutel"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "Ongeldige API-sleutel",
+      "unknown": "Onverwachte fout"
+    },
+    "abort": {
+      "already_configured": "Deze API-sleutel is al geconfigureerd",
+      "reauth_successful": "Opnieuw authenticeren is gelukt"
+    }
+  },
+  "config_subentries": {
+    "conversation": {
+      "entry_type": "Gespreksagent",
+      "initiate_flow": {
+        "reconfigure": "Gespreksagent opnieuw configureren",
+        "user": "Gespreksagent toevoegen"
+      },
+      "step": {
+        "init": {
+          "title": "Mistral-gesprek",
+          "description": "Stel deze gespreksagent in.",
+          "data": {
+            "name": "Naam",
+            "prompt": "Instructies",
+            "llm_hass_api": "Home Assistant besturen",
+            "recommended": "Aanbevolen modelinstellingen gebruiken"
+          },
+          "data_description": {
+            "prompt": "Instructies voor de AI over hoe te reageren en wat het mag doen.",
+            "llm_hass_api": "Laat de AI Home Assistant-services aanroepen en toestanden lezen."
+          }
+        },
+        "advanced": {
+          "title": "Geavanceerde instellingen",
+          "description": "Modelparameters fijn afstellen.",
+          "data": {
+            "chat_model": "Model",
+            "max_tokens": "Maximaal aantal tokens",
+            "top_p": "Top P",
+            "temperature": "Temperatuur",
+            "safe_prompt": "Veilige prompt",
+            "reasoning_effort": "Redeneerinspanning",
+            "web_search": "Webzoekopdracht"
+          },
+          "data_description": {
+            "chat_model": "Chatmodel voor aanvullingen.",
+            "max_tokens": "Maximaal aantal tokens in het antwoord.",
+            "top_p": "Nucleus sampling (0–1).",
+            "temperature": "Willekeur (0–1,5). Lager = meer deterministisch.",
+            "safe_prompt": "Schakel de ingebouwde veiligheidsgrenzen van Mistral in.",
+            "reasoning_effort": "Bepaalt hoeveel het model nadenkt voordat het antwoordt. 'high' voegt een denkstap toe met een hoger tokenverbruik.",
+            "web_search": "Laat het model op het web zoeken naar actuele informatie."
+          }
+        }
+      },
+      "abort": {
+        "entry_not_loaded": "Configureren is niet mogelijk terwijl het item is uitgeschakeld.",
+        "reconfigure_successful": "[%key:common::config_flow::abort::reconfigure_successful%]"
+      }
+    },
+    "ai_task_data": {
+      "entry_type": "AI-taak",
+      "initiate_flow": {
+        "reconfigure": "AI-taak opnieuw configureren",
+        "user": "AI-taak toevoegen"
+      },
+      "step": {
+        "init": {
+          "title": "Mistral AI-taak",
+          "description": "Stel deze AI-taakagent in.",
+          "data": {
+            "name": "Naam",
+            "recommended": "Aanbevolen modelinstellingen gebruiken"
+          }
+        },
+        "advanced": {
+          "title": "Geavanceerde instellingen",
+          "description": "Modelparameters fijn afstellen.",
+          "data": {
+            "chat_model": "Model",
+            "max_tokens": "Maximaal aantal tokens",
+            "top_p": "Top P",
+            "temperature": "Temperatuur",
+            "safe_prompt": "Veilige prompt",
+            "reasoning_effort": "Redeneerinspanning"
+          },
+          "data_description": {
+            "chat_model": "Model voor AI-taken.",
+            "max_tokens": "Maximaal aantal tokens in het antwoord.",
+            "top_p": "Nucleus sampling (0–1).",
+            "temperature": "Willekeur (0–1,5). Lager = meer deterministisch.",
+            "safe_prompt": "Schakel de ingebouwde veiligheidsgrenzen van Mistral in.",
+            "reasoning_effort": "Bepaalt hoeveel het model nadenkt voordat het antwoordt. 'high' voegt een denkstap toe met een hoger tokenverbruik."
+          }
+        }
+      },
+      "abort": {
+        "entry_not_loaded": "Configureren is niet mogelijk terwijl het item is uitgeschakeld.",
+        "reconfigure_successful": "[%key:common::config_flow::abort::reconfigure_successful%]"
+      }
+    },
+    "stt": {
+      "entry_type": "Spraak-naar-tekst",
+      "initiate_flow": {
+        "reconfigure": "Spraak-naar-tekst-service opnieuw configureren",
+        "user": "Spraak-naar-tekst-service toevoegen"
+      },
+      "step": {
+        "init": {
+          "title": "Mistral Spraak-naar-tekst",
+          "description": "Voxtral STT instellen.",
+          "data": {
+            "name": "Naam",
+            "prompt": "Contextprompt",
+            "chat_model": "Model"
+          },
+          "data_description": {
+            "prompt": "Optionele context om de transcriptienauwkeurigheid te verbeteren (bijv. domeinspecifieke termen).",
+            "chat_model": "Het Voxtral-model voor spraak-naar-tekst."
+          }
+        }
+      },
+      "abort": {
+        "entry_not_loaded": "Configureren is niet mogelijk terwijl het item is uitgeschakeld.",
+        "reconfigure_successful": "[%key:common::config_flow::abort::reconfigure_successful%]"
+      }
+    },
+    "tts": {
+      "entry_type": "Tekst-naar-spraak",
+      "initiate_flow": {
+        "reconfigure": "Tekst-naar-spraak-service opnieuw configureren",
+        "user": "Tekst-naar-spraak-service toevoegen"
+      },
+      "step": {
+        "init": {
+          "title": "Mistral Tekst-naar-spraak",
+          "description": "Voxtral TTS instellen.",
+          "data": {
+            "name": "Naam",
+            "tts_voice": "Stem-ID"
+          },
+          "data_description": {
+            "tts_voice": "De te gebruiken stem-ID (bijv. 'jessica'). Laat leeg voor de standaardstem."
+          }
+        }
+      },
+      "abort": {
+        "entry_not_loaded": "Configureren is niet mogelijk terwijl het item is uitgeschakeld.",
+        "reconfigure_successful": "[%key:common::config_flow::abort::reconfigure_successful%]"
+      }
+    }
+  },
+  "services": {
+    "generate_content": {
+      "name": "Inhoud genereren",
+      "description": "Stuur een prompt naar Mistral en ontvang een antwoord.",
+      "fields": {
+        "config_entry": {
+          "name": "Configuratie-item",
+          "description": "Het te gebruiken Mistral-configuratie-item."
+        },
+        "prompt": {
+          "name": "Prompt",
+          "description": "De naar Mistral te sturen prompt."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "invalid_config_entry": {
+      "message": "Ongeldig configuratie-item: {config_entry}"
+    }
+  }
+}
