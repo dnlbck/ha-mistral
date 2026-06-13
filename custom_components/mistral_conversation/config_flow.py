@@ -40,6 +40,7 @@ from homeassistant.helpers.selector import (
     TextSelectorType,
 )
 from homeassistant.helpers.typing import VolDictType
+from homeassistant.util import dt as dt_util
 
 from .const import (
     CONF_CHAT_MODEL,
@@ -79,6 +80,22 @@ STEP_USER_DATA_SCHEMA = vol.Schema(
     }
 )
 
+FALLBACK_CHAT_MODELS: list[str] = [
+    "mistral-small-latest",
+    "mistral-medium-latest",
+    "mistral-large-latest",
+    "ministral-3b-latest",
+    "ministral-8b-latest",
+    "codestral-latest",
+    "pixtral-large-latest",
+    "pixtral-12b-2409",
+]
+
+FALLBACK_STT_MODELS: list[str] = [
+    "voxtral-mini-latest",
+    "voxtral-mini-2602",
+]
+
 
 async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> None:
     """Validate the user input allows us to connect."""
@@ -87,6 +104,42 @@ async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> None:
         async_client=get_async_client(hass),
     )
     await client.models.list_async()
+
+
+async def _async_get_model_options(
+    entry: ConfigEntry, capability: str, fallback: list[str]
+) -> list[SelectOptionDict]:
+    """List models available on the account that have the given capability."""
+    client: Mistral = entry.runtime_data
+    try:
+        response = await client.models.list_async()
+    except Exception:
+        _LOGGER.warning(
+            "Could not fetch models from Mistral, using fallback list", exc_info=True
+        )
+        response = None
+
+    models: dict[str, str] = {}
+    for model in (response.data if response else None) or []:
+        if not getattr(getattr(model, "capabilities", None), capability, False):
+            continue
+        deprecation = getattr(model, "deprecation", None)
+        if deprecation and dt_util.as_utc(deprecation) <= dt_util.utcnow():
+            continue
+        name = getattr(model, "name", None)
+        models[model.id] = (
+            f"{name} ({model.id})" if name and name != model.id else model.id
+        )
+        for alias in getattr(model, "aliases", None) or []:
+            models.setdefault(alias, alias)
+
+    if not models:
+        models = {model_id: model_id for model_id in fallback}
+
+    return [
+        SelectOptionDict(value=model_id, label=label)
+        for model_id, label in sorted(models.items(), key=lambda item: item[1].lower())
+    ]
 
 
 class MistralConfigFlow(ConfigFlow, domain=DOMAIN):
@@ -311,22 +364,30 @@ class MistralSubentryFlowHandler(ConfigSubentryFlow):
         """Manage advanced options."""
         options = self.options
 
+        if user_input is not None:
+            options.update(user_input)
+            if self._is_new:
+                return self.async_create_entry(
+                    title=options.pop(CONF_NAME),
+                    data=options,
+                )
+            return self.async_update_and_abort(
+                self._get_entry(),
+                self._get_reconfigure_subentry(),
+                data=options,
+            )
+
+        model_options = await _async_get_model_options(
+            self._get_entry(), "completion_chat", FALLBACK_CHAT_MODELS
+        )
+
         step_schema: VolDictType = {
             vol.Optional(
                 CONF_CHAT_MODEL,
                 default=RECOMMENDED_CHAT_MODEL,
             ): SelectSelector(
                 SelectSelectorConfig(
-                    options=[
-                        "mistral-small-latest",
-                        "mistral-medium-latest",
-                        "mistral-large-latest",
-                        "ministral-3b-latest",
-                        "ministral-8b-latest",
-                        "codestral-latest",
-                        "pixtral-large-latest",
-                        "pixtral-12b-2409",
-                    ],
+                    options=model_options,
                     mode=SelectSelectorMode.DROPDOWN,
                     custom_value=True,
                 )
@@ -365,19 +426,6 @@ class MistralSubentryFlowHandler(ConfigSubentryFlow):
                     default=RECOMMENDED_WEB_SEARCH,
                 )
             ] = bool
-
-        if user_input is not None:
-            options.update(user_input)
-            if self._is_new:
-                return self.async_create_entry(
-                    title=options.pop(CONF_NAME),
-                    data=options,
-                )
-            return self.async_update_and_abort(
-                self._get_entry(),
-                self._get_reconfigure_subentry(),
-                data=options,
-            )
 
         return self.async_show_form(
             step_id="advanced",
@@ -420,28 +468,6 @@ class MistralSubentrySTTFlowHandler(ConfigSubentryFlow):
 
         options = self.options
 
-        step_schema: VolDictType = {}
-
-        if self._is_new:
-            step_schema[vol.Required(CONF_NAME, default=DEFAULT_STT_NAME)] = str
-
-        step_schema.update(
-            {
-                vol.Optional(
-                    CONF_CHAT_MODEL, default=RECOMMENDED_STT_MODEL
-                ): SelectSelector(
-                    SelectSelectorConfig(
-                        options=[
-                            "voxtral-mini-latest",
-                            "voxtral-mini-2602",
-                        ],
-                        mode=SelectSelectorMode.DROPDOWN,
-                        custom_value=True,
-                    )
-                ),
-            }
-        )
-
         if user_input is not None:
             options.update(user_input)
             if self._is_new:
@@ -454,6 +480,29 @@ class MistralSubentrySTTFlowHandler(ConfigSubentryFlow):
                 self._get_reconfigure_subentry(),
                 data=options,
             )
+
+        step_schema: VolDictType = {}
+
+        if self._is_new:
+            step_schema[vol.Required(CONF_NAME, default=DEFAULT_STT_NAME)] = str
+
+        model_options = await _async_get_model_options(
+            self._get_entry(), "audio_transcription", FALLBACK_STT_MODELS
+        )
+
+        step_schema.update(
+            {
+                vol.Optional(
+                    CONF_CHAT_MODEL, default=RECOMMENDED_STT_MODEL
+                ): SelectSelector(
+                    SelectSelectorConfig(
+                        options=model_options,
+                        mode=SelectSelectorMode.DROPDOWN,
+                        custom_value=True,
+                    )
+                ),
+            }
+        )
 
         return self.async_show_form(
             step_id="init",
