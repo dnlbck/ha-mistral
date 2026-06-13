@@ -72,7 +72,7 @@
       },
       "abort": {
         "entry_not_loaded": "Impossible de configurer tant que l'entrée est désactivée.",
-        "reconfigure_successful": "[%key:common::config_flow::abort::reconfigure_successful%]"
+        "reconfigure_successful": "La reconfiguration a réussi"
       }
     },
     "ai_task_data": {
@@ -113,7 +113,7 @@
       },
       "abort": {
         "entry_not_loaded": "Impossible de configurer tant que l'entrée est désactivée.",
-        "reconfigure_successful": "[%key:common::config_flow::abort::reconfigure_successful%]"
+        "reconfigure_successful": "La reconfiguration a réussi"
       }
     },
     "stt": {
@@ -139,7 +139,7 @@
       },
       "abort": {
         "entry_not_loaded": "Impossible de configurer tant que l'entrée est désactivée.",
-        "reconfigure_successful": "[%key:common::config_flow::abort::reconfigure_successful%]"
+        "reconfigure_successful": "La reconfiguration a réussi"
       }
     },
     "tts": {
@@ -163,7 +163,7 @@
       },
       "abort": {
         "entry_not_loaded": "Impossible de configurer tant que l'entrée est désactivée.",
-        "reconfigure_successful": "[%key:common::config_flow::abort::reconfigure_successful%]"
+        "reconfigure_successful": "La reconfiguration a réussi"
       }
     }
   },

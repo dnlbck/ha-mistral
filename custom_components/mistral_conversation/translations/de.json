@@ -72,7 +72,7 @@
       },
       "abort": {
         "entry_not_loaded": "Konfiguration nicht möglich, während der Eintrag deaktiviert ist.",
-        "reconfigure_successful": "[%key:common::config_flow::abort::reconfigure_successful%]"
+        "reconfigure_successful": "Die Neukonfiguration war erfolgreich"
       }
     },
     "ai_task_data": {
@@ -113,7 +113,7 @@
       },
       "abort": {
         "entry_not_loaded": "Konfiguration nicht möglich, während der Eintrag deaktiviert ist.",
-        "reconfigure_successful": "[%key:common::config_flow::abort::reconfigure_successful%]"
+        "reconfigure_successful": "Die Neukonfiguration war erfolgreich"
       }
     },
     "stt": {
@@ -139,7 +139,7 @@
       },
       "abort": {
         "entry_not_loaded": "Konfiguration nicht möglich, während der Eintrag deaktiviert ist.",
-        "reconfigure_successful": "[%key:common::config_flow::abort::reconfigure_successful%]"
+        "reconfigure_successful": "Die Neukonfiguration war erfolgreich"
       }
     },
     "tts": {
@@ -163,7 +163,7 @@
       },
       "abort": {
         "entry_not_loaded": "Konfiguration nicht möglich, während der Eintrag deaktiviert ist.",
-        "reconfigure_successful": "[%key:common::config_flow::abort::reconfigure_successful%]"
+        "reconfigure_successful": "Die Neukonfiguration war erfolgreich"
       }
     }
   },

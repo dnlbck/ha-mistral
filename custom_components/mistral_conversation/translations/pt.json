@@ -72,7 +72,7 @@
       },
       "abort": {
         "entry_not_loaded": "Não é possível configurar enquanto a entrada está desativada.",
-        "reconfigure_successful": "[%key:common::config_flow::abort::reconfigure_successful%]"
+        "reconfigure_successful": "A reconfiguração foi bem-sucedida"
       }
     },
     "ai_task_data": {
@@ -113,7 +113,7 @@
       },
       "abort": {
         "entry_not_loaded": "Não é possível configurar enquanto a entrada está desativada.",
-        "reconfigure_successful": "[%key:common::config_flow::abort::reconfigure_successful%]"
+        "reconfigure_successful": "A reconfiguração foi bem-sucedida"
       }
     },
     "stt": {
@@ -139,7 +139,7 @@
       },
       "abort": {
         "entry_not_loaded": "Não é possível configurar enquanto a entrada está desativada.",
-        "reconfigure_successful": "[%key:common::config_flow::abort::reconfigure_successful%]"
+        "reconfigure_successful": "A reconfiguração foi bem-sucedida"
       }
     },
     "tts": {
@@ -163,7 +163,7 @@
       },
       "abort": {
         "entry_not_loaded": "Não é possível configurar enquanto a entrada está desativada.",
-        "reconfigure_successful": "[%key:common::config_flow::abort::reconfigure_successful%]"
+        "reconfigure_successful": "A reconfiguração foi bem-sucedida"
       }
     }
   },
