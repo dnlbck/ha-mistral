@@ -11,13 +11,13 @@ A Home Assistant custom integration for [Mistral AI](https://mistral.ai/) — co
 ## Features
 
 - **Conversation** — Chat with Mistral models with full tool/function calling and streaming
-- **AI Task** — Structured data generation
+- **AI Task** — Structured data generation and image generation
 - **Speech-to-Text** — Transcribe audio via Voxtral (13 languages)
 - **Text-to-Speech** — Synthesize speech via Voxtral TTS (9 languages)
 
 ## Requirements
 
-- Home Assistant **2025.7.0** or newer
+- Home Assistant **2025.8.0** or newer
 - A [Mistral AI API key](https://console.mistral.ai/api-keys/)
 
 ## Installation
@@ -44,7 +44,7 @@ A Home Assistant custom integration for [Mistral AI](https://mistral.ai/) — co
 3. Enter your Mistral AI API key
 4. The integration creates four sub-entries by default — you can reconfigure or add more under the integration's options:
    - **Conversation** — Model, temperature, system prompt, and which Home Assistant APIs the model can call
-   - **AI Task** — Structured data generation (JSON output from a prompt)
+   - **AI Task** — Structured data generation (JSON output from a prompt) and image generation via Mistral's image generation tool (uses the configured model, `mistral-medium-latest` by default)
    - **STT** — Audio transcription via Voxtral
    - **TTS** — Speech synthesis via Voxtral TTS (pick a voice or leave blank for the default)
 
