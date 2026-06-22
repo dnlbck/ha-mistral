@@ -11,7 +11,7 @@ jobs:
     name: Validate version
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Check manifest version matches release tag
         run: |
           MANIFEST_VERSION=$(python3 -c "import json; print(json.load(open('custom_components/mistral_conversation/manifest.json'))['version'])")
@@ -26,14 +26,14 @@ jobs:
     name: Hassfest
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: home-assistant/actions/hassfest@master
 
   hacs:
     name: HACS Validation
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: hacs/action@main
         with:
           category: integration
