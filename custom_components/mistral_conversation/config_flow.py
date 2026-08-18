@@ -2,14 +2,11 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping
 import logging
+from collections.abc import Mapping
 from typing import Any
 
-from mistralai.client import Mistral
-from mistralai.client.errors import SDKError
 import voluptuous as vol
-
 from homeassistant.config_entries import (
     SOURCE_REAUTH,
     ConfigEntry,
@@ -41,6 +38,8 @@ from homeassistant.helpers.selector import (
 )
 from homeassistant.helpers.typing import VolDictType
 from homeassistant.util import dt as dt_util
+from mistralai.client import Mistral
+from mistralai.client.errors import SDKError
 
 from .const import (
     CONF_CHAT_MODEL,

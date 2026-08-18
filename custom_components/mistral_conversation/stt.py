@@ -2,12 +2,9 @@
 
 from __future__ import annotations
 
-from collections.abc import AsyncIterable
 import io
 import wave
-
-from mistralai.client import Mistral
-from mistralai.client.errors import SDKError
+from collections.abc import AsyncIterable
 
 from homeassistant.components import stt
 from homeassistant.config_entries import ConfigSubentry
@@ -15,6 +12,8 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import (
     AddConfigEntryEntitiesCallback,
 )
+from mistralai.client import Mistral
+from mistralai.client.errors import SDKError
 
 from . import MistralConfigEntry
 from .const import (
@@ -24,7 +23,6 @@ from .const import (
     RECOMMENDED_STT_MODEL,
 )
 from .entity import MistralBaseLLMEntity, async_backoff
-
 
 # Languages supported by Voxtral STT
 _STT_LANGUAGES = [

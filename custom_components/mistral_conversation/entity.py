@@ -5,26 +5,26 @@ from __future__ import annotations
 import asyncio
 import base64
 import json
-from json import JSONDecodeError
-from mimetypes import guess_file_type
-from pathlib import Path
 import random
 import string
 from collections.abc import AsyncGenerator, Callable, Iterable
+from json import JSONDecodeError
+from mimetypes import guess_file_type
+from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-from mistralai.client.errors import SDKError
 import voluptuous as vol
-from voluptuous_openapi import convert
-
 from homeassistant.components import conversation
 from homeassistant.config_entries import ConfigSubentry
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
-from homeassistant.helpers import device_registry as dr, llm
+from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers import llm
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.json import json_dumps
 from homeassistant.util.json import json_loads
+from mistralai.client.errors import SDKError
+from voluptuous_openapi import convert
 
 from .const import (
     BACKOFF_INITIAL_DELAY,
@@ -163,32 +163,31 @@ def _convert_content_to_messages(
         if content.content:
             messages.append({"role": content.role, "content": content.content})
 
-        if isinstance(content, conversation.AssistantContent):
-            if content.tool_calls:
-                tool_calls = []
-                for tool_call in content.tool_calls:
-                    tool_calls.append(
-                        {
-                            "id": _mistral_tool_call_id(tool_call.id, id_map),
-                            "type": "function",
-                            "function": {
-                                "name": tool_call.tool_name,
-                                "arguments": json.dumps(tool_call.tool_args),
-                            },
-                        }
-                    )
-                # If we already appended a message for this content, add
-                # tool_calls to it; otherwise create a new assistant message
-                if messages and messages[-1].get("role") == "assistant":
-                    messages[-1]["tool_calls"] = tool_calls
-                else:
-                    messages.append(
-                        {
-                            "role": "assistant",
-                            "content": content.content or "",
-                            "tool_calls": tool_calls,
-                        }
-                    )
+        if isinstance(content, conversation.AssistantContent) and content.tool_calls:
+            tool_calls = []
+            for tool_call in content.tool_calls:
+                tool_calls.append(
+                    {
+                        "id": _mistral_tool_call_id(tool_call.id, id_map),
+                        "type": "function",
+                        "function": {
+                            "name": tool_call.tool_name,
+                            "arguments": json.dumps(tool_call.tool_args),
+                        },
+                    }
+                )
+            # If we already appended a message for this content, add
+            # tool_calls to it; otherwise create a new assistant message
+            if messages and messages[-1].get("role") == "assistant":
+                messages[-1]["tool_calls"] = tool_calls
+            else:
+                messages.append(
+                    {
+                        "role": "assistant",
+                        "content": content.content or "",
+                        "tool_calls": tool_calls,
+                    }
+                )
 
     return messages
 

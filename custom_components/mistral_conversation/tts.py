@@ -4,10 +4,7 @@ from __future__ import annotations
 
 import base64
 from collections.abc import Mapping
-from typing import Any
-
-from mistralai.client import Mistral
-from mistralai.client.errors import SDKError
+from typing import Any, ClassVar
 
 from homeassistant.components.tts import (
     ATTR_PREFERRED_FORMAT,
@@ -21,6 +18,8 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import (
     AddConfigEntryEntitiesCallback,
 )
+from mistralai.client import Mistral
+from mistralai.client.errors import SDKError
 
 from . import MistralConfigEntry
 from .const import (
@@ -31,7 +30,6 @@ from .const import (
     RECOMMENDED_TTS_MODEL,
 )
 from .entity import MistralBaseLLMEntity, async_backoff
-
 
 # Languages supported by Voxtral TTS
 _TTS_LANGUAGES = [
@@ -94,7 +92,7 @@ class MistralTTSEntity(TextToSpeechEntity, MistralBaseLLMEntity):
     """Mistral TTS entity using Voxtral TTS."""
 
     _attr_has_entity_name = False
-    _attr_supported_options = [ATTR_VOICE, ATTR_PREFERRED_FORMAT]
+    _attr_supported_options: ClassVar[list[str]] = [ATTR_VOICE, ATTR_PREFERRED_FORMAT]
 
     def __init__(
         self,

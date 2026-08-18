@@ -1,12 +1,9 @@
 """AI Task support for Mistral."""
 
-from json import JSONDecodeError
 import logging
+from json import JSONDecodeError
 from mimetypes import guess_file_type
 from typing import TYPE_CHECKING, Any
-
-from mistralai.client.errors import SDKError
-from mistralai.client.models import MessageOutputEntry, TextChunk, ToolFileChunk
 
 from homeassistant.components import ai_task, conversation
 from homeassistant.core import HomeAssistant
@@ -15,6 +12,8 @@ from homeassistant.helpers.entity_platform import (
     AddConfigEntryEntitiesCallback,
 )
 from homeassistant.util.json import json_loads
+from mistralai.client.errors import SDKError
+from mistralai.client.models import MessageOutputEntry, TextChunk, ToolFileChunk
 
 from . import MistralConfigEntry
 from .const import (

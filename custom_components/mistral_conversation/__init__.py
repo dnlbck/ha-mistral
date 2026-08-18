@@ -4,11 +4,7 @@ from __future__ import annotations
 
 from types import MappingProxyType
 
-from mistralai.client import Mistral
-from mistralai.client.errors import SDKError
-from mistralai.client.models import TextChunk
 import voluptuous as vol
-
 from homeassistant.config_entries import ConfigEntry, ConfigSubentry
 from homeassistant.const import CONF_API_KEY, Platform
 from homeassistant.core import (
@@ -25,12 +21,21 @@ from homeassistant.exceptions import (
 )
 from homeassistant.helpers import (
     config_validation as cv,
+)
+from homeassistant.helpers import (
     device_registry as dr,
+)
+from homeassistant.helpers import (
     entity_registry as er,
+)
+from homeassistant.helpers import (
     selector,
 )
 from homeassistant.helpers.httpx_client import get_async_client
 from homeassistant.helpers.typing import ConfigType
+from mistralai.client import Mistral
+from mistralai.client.errors import SDKError
+from mistralai.client.models import TextChunk
 
 from .const import (
     CONF_CHAT_MODEL,
