@@ -6,6 +6,7 @@ from types import MappingProxyType
 
 from mistralai.client import Mistral
 from mistralai.client.errors import SDKError
+from mistralai.client.models import TextChunk
 import voluptuous as vol
 
 from homeassistant.config_entries import ConfigEntry, ConfigSubentry
@@ -123,7 +124,12 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         if not response or not response.choices:
             raise HomeAssistantError("No response returned")
 
-        return {"text": response.choices[0].message.content}
+        content = response.choices[0].message.content
+        if isinstance(content, list):
+            content = "".join(
+                chunk.text for chunk in content if isinstance(chunk, TextChunk)
+            )
+        return {"text": content or ""}
 
     hass.services.async_register(
         DOMAIN,

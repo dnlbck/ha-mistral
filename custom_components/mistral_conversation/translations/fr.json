@@ -128,11 +128,9 @@
           "description": "Configurer Voxtral STT.",
           "data": {
             "name": "Nom",
-            "prompt": "Prompt de contexte",
             "chat_model": "Modèle"
           },
           "data_description": {
-            "prompt": "Contexte facultatif pour améliorer la précision de la transcription (par exemple, des termes spécifiques au domaine).",
             "chat_model": "Le modèle Voxtral à utiliser pour la reconnaissance vocale."
           }
         }

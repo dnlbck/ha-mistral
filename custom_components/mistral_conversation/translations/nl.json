@@ -128,11 +128,9 @@
           "description": "Voxtral STT instellen.",
           "data": {
             "name": "Naam",
-            "prompt": "Contextprompt",
             "chat_model": "Model"
           },
           "data_description": {
-            "prompt": "Optionele context om de transcriptienauwkeurigheid te verbeteren (bijv. domeinspecifieke termen).",
             "chat_model": "Het Voxtral-model voor spraak-naar-tekst."
           }
         }

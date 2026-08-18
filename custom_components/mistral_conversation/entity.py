@@ -161,10 +161,7 @@ def _convert_content_to_messages(
             continue
 
         if content.content:
-            role: str = content.role
-            if role == "system":
-                role = "system"
-            messages.append({"role": role, "content": content.content})
+            messages.append({"role": content.role, "content": content.content})
 
         if isinstance(content, conversation.AssistantContent):
             if content.tool_calls:
