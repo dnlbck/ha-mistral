@@ -17,6 +17,7 @@
       }
     },
     "error": {
+      "cannot_connect": "Failed to connect",
       "invalid_auth": "Invalid API key",
       "unknown": "Unexpected error"
     },
@@ -34,15 +35,17 @@
       },
       "step": {
         "init": {
-          "title": "Mistral Conversation",
+          "title": "Mistral AI",
           "description": "Set up this conversation agent.",
           "data": {
             "name": "Name",
+            "chat_model": "Model",
             "prompt": "Instructions",
             "llm_hass_api": "Control Home Assistant",
             "recommended": "Use recommended model settings"
           },
           "data_description": {
+            "chat_model": "Model for this agent. Models marked with 👁️ accept images (e.g. camera snapshots).",
             "prompt": "Instructions for the AI on how to respond and what it can do.",
             "llm_hass_api": "Let the AI call Home Assistant services and read state."
           }
@@ -51,7 +54,6 @@
           "title": "Advanced Settings",
           "description": "Fine-tune the model parameters.",
           "data": {
-            "chat_model": "Model",
             "max_tokens": "Maximum tokens",
             "top_p": "Top P",
             "temperature": "Temperature",
@@ -60,12 +62,11 @@
             "web_search": "Web search"
           },
           "data_description": {
-            "chat_model": "Chat model for completions.",
             "max_tokens": "Max tokens in the response.",
             "top_p": "Nucleus sampling (0–1).",
             "temperature": "Randomness (0–1.5). Lower = more deterministic.",
             "safe_prompt": "Enable Mistral's built-in safety guardrails.",
-            "reasoning_effort": "Controls how much the model reasons before answering. 'high' adds a thinking step with increased token usage.",
+            "reasoning_effort": "Controls how much the model reasons before answering. Higher levels think longer and use more tokens.",
             "web_search": "Allow the model to search the web for up-to-date information."
           }
         }
@@ -87,14 +88,17 @@
           "description": "Set up this AI task agent.",
           "data": {
             "name": "Name",
+            "chat_model": "Model",
             "recommended": "Use recommended model settings"
+          },
+          "data_description": {
+            "chat_model": "Model for AI tasks. Models marked with 👁️ accept images (e.g. camera snapshots)."
           }
         },
         "advanced": {
           "title": "Advanced Settings",
           "description": "Fine-tune the model parameters.",
           "data": {
-            "chat_model": "Model",
             "max_tokens": "Maximum tokens",
             "top_p": "Top P",
             "temperature": "Temperature",
@@ -102,12 +106,11 @@
             "reasoning_effort": "Reasoning effort"
           },
           "data_description": {
-            "chat_model": "Model for AI tasks.",
             "max_tokens": "Max tokens in the response.",
             "top_p": "Nucleus sampling (0–1).",
             "temperature": "Randomness (0–1.5). Lower = more deterministic.",
             "safe_prompt": "Enable Mistral's built-in safety guardrails.",
-            "reasoning_effort": "Controls how much the model reasons before answering. 'high' adds a thinking step with increased token usage."
+            "reasoning_effort": "Controls how much the model reasons before answering. Higher levels think longer and use more tokens."
           }
         }
       },
@@ -152,10 +155,10 @@
           "description": "Set up Voxtral TTS.",
           "data": {
             "name": "Name",
-            "tts_voice": "Voice ID"
+            "chat_model": "Model"
           },
           "data_description": {
-            "tts_voice": "The voice ID to use (e.g., 'jessica'). Leave empty for default."
+            "chat_model": "The Voxtral model to use for text-to-speech."
           }
         }
       },
@@ -184,6 +187,9 @@
   "exceptions": {
     "invalid_config_entry": {
       "message": "Invalid config entry: {config_entry}"
+    },
+    "model_does_not_support_vision": {
+      "message": "{model} does not support images. Reconfigure this agent and pick a model marked with 👁️, or remove the image attachment."
     }
   }
 }

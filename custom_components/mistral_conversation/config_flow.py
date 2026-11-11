@@ -1,4 +1,4 @@
-"""Config flow for Mistral Conversation integration."""
+"""Config flow for the Mistral AI integration."""
 
 from __future__ import annotations
 
@@ -32,14 +32,10 @@ from homeassistant.helpers.selector import (
     SelectSelectorConfig,
     SelectSelectorMode,
     TemplateSelector,
-    TextSelector,
-    TextSelectorConfig,
-    TextSelectorType,
 )
 from homeassistant.helpers.typing import VolDictType
 from homeassistant.util import dt as dt_util
 from mistralai.client import Mistral
-from mistralai.client.errors import SDKError
 
 from .const import (
     CONF_CHAT_MODEL,
@@ -50,13 +46,14 @@ from .const import (
     CONF_SAFE_PROMPT,
     CONF_TEMPERATURE,
     CONF_TOP_P,
-    CONF_TTS_VOICE,
     CONF_WEB_SEARCH,
     DEFAULT_AI_TASK_NAME,
     DEFAULT_CONVERSATION_NAME,
     DEFAULT_STT_NAME,
     DEFAULT_TTS_NAME,
     DOMAIN,
+    LEGACY_CHAT_MODEL,
+    REASONING_EFFORTS,
     RECOMMENDED_AI_TASK_OPTIONS,
     RECOMMENDED_CHAT_MODEL,
     RECOMMENDED_CONVERSATION_OPTIONS,
@@ -67,9 +64,13 @@ from .const import (
     RECOMMENDED_STT_OPTIONS,
     RECOMMENDED_TEMPERATURE,
     RECOMMENDED_TOP_P,
+    RECOMMENDED_TTS_MODEL,
     RECOMMENDED_TTS_OPTIONS,
     RECOMMENDED_WEB_SEARCH,
+    VISION_MODEL_MARKER,
 )
+from .errors import MISTRAL_CONNECTION_ERRORS, MistralAPIError
+from .models import async_get_model_cards
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -80,19 +81,24 @@ STEP_USER_DATA_SCHEMA = vol.Schema(
 )
 
 FALLBACK_CHAT_MODELS: list[str] = [
+    "mistral-large-4",
     "mistral-small-latest",
     "mistral-medium-latest",
     "mistral-large-latest",
+    "zai-glm-5-3",
+    "zai-glm-5-2",
     "ministral-3b-latest",
     "ministral-8b-latest",
     "codestral-latest",
-    "pixtral-large-latest",
-    "pixtral-12b-2409",
 ]
 
 FALLBACK_STT_MODELS: list[str] = [
     "voxtral-mini-latest",
     "voxtral-mini-2602",
+]
+
+FALLBACK_TTS_MODELS: list[str] = [
+    "voxtral-mini-tts-2603",
 ]
 
 
@@ -106,43 +112,49 @@ async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> None:
 
 
 async def _async_get_model_options(
-    entry: ConfigEntry, capability: str, fallback: list[str]
+    hass: HomeAssistant, entry: ConfigEntry, capability: str, fallback: list[str]
 ) -> list[SelectOptionDict]:
     """List models available on the account that have the given capability."""
-    client: Mistral = entry.runtime_data
     try:
-        response = await client.models.list_async()
+        cards = await async_get_model_cards(hass, entry)
     except Exception:
         _LOGGER.warning(
             "Could not fetch models from Mistral, using fallback list", exc_info=True
         )
-        response = None
+        cards = []
 
-    models: dict[str, str] = {}
-    for model in (response.data if response else None) or []:
-        if not getattr(getattr(model, "capabilities", None), capability, False):
+    options: dict[str, str] = {}
+    for model in cards:
+        capabilities = getattr(model, "capabilities", None)
+        if not getattr(capabilities, capability, False):
             continue
         deprecation = getattr(model, "deprecation", None)
         if deprecation and dt_util.as_utc(deprecation) <= dt_util.utcnow():
             continue
         name = getattr(model, "name", None)
-        models[model.id] = (
-            f"{name} ({model.id})" if name and name != model.id else model.id
-        )
+        label = f"{name} ({model.id})" if name and name != model.id else model.id
+        if getattr(capabilities, "vision", False):
+            label = f"{label} {VISION_MODEL_MARKER}"
+        options[model.id] = label
         for alias in getattr(model, "aliases", None) or []:
-            models.setdefault(alias, alias)
+            options.setdefault(
+                alias,
+                f"{alias} {VISION_MODEL_MARKER}"
+                if getattr(capabilities, "vision", False)
+                else alias,
+            )
 
-    if not models:
-        models = {model_id: model_id for model_id in fallback}
+    if not options:
+        options = {model_id: model_id for model_id in fallback}
 
     return [
         SelectOptionDict(value=model_id, label=label)
-        for model_id, label in sorted(models.items(), key=lambda item: item[1].lower())
+        for model_id, label in sorted(options.items(), key=lambda item: item[1].lower())
     ]
 
 
 class MistralConfigFlow(ConfigFlow, domain=DOMAIN):
-    """Handle a config flow for Mistral Conversation."""
+    """Handle a config flow for Mistral AI."""
 
     VERSION = 2
     MINOR_VERSION = 6
@@ -154,25 +166,39 @@ class MistralConfigFlow(ConfigFlow, domain=DOMAIN):
         errors: dict[str, str] = {}
 
         if user_input is not None:
-            self._async_abort_entries_match(user_input)
+            if self.source != SOURCE_REAUTH:
+                # Re-entering the key of the entry being re-authenticated is fine
+                self._async_abort_entries_match(user_input)
             try:
                 await validate_input(self.hass, user_input)
-            except SDKError as err:
+            except MistralAPIError as err:
                 if err.status_code == 401:
                     errors["base"] = "invalid_auth"
                 else:
                     _LOGGER.exception("Unexpected exception")
                     errors["base"] = "unknown"
+            except MISTRAL_CONNECTION_ERRORS:
+                _LOGGER.warning("Could not reach Mistral", exc_info=True)
+                errors["base"] = "cannot_connect"
             except Exception:
                 _LOGGER.exception("Unexpected exception")
                 errors["base"] = "unknown"
             else:
                 if self.source == SOURCE_REAUTH:
+                    entry = self._get_reauth_entry()
+                    if entry.update_listeners:
+                        # The entry is loaded, so its update listener reloads
+                        # it. Reloading from the flow as well is deprecated and
+                        # stops working in Home Assistant 2026.12.
+                        self.hass.config_entries.async_update_entry(
+                            entry, data={**entry.data, **user_input}
+                        )
+                        return self.async_abort(reason="reauth_successful")
                     return self.async_update_reload_and_abort(
-                        self._get_reauth_entry(), data_updates=user_input
+                        entry, data_updates=user_input
                     )
                 return self.async_create_entry(
-                    title="Mistral",
+                    title="Mistral AI",
                     data=user_input,
                     subentries=[
                         {
@@ -270,6 +296,9 @@ class MistralSubentryFlowHandler(ConfigSubentryFlow):
     ) -> SubentryFlowResult:
         """Handle reconfiguration of a subentry."""
         self.options = self._get_reconfigure_subentry().data.copy()
+        # Agents saved before 1.3.0 may have no model stored. Show the one
+        # they run on, so that saving the form does not switch it.
+        self.options.setdefault(CONF_CHAT_MODEL, LEGACY_CHAT_MODEL)
         return await self.async_step_init()
 
     async def async_step_init(
@@ -304,6 +333,19 @@ class MistralSubentryFlowHandler(ConfigSubentryFlow):
             else:
                 default_name = DEFAULT_CONVERSATION_NAME
             step_schema[vol.Required(CONF_NAME, default=default_name)] = str
+
+        model_options = await _async_get_model_options(
+            self.hass, self._get_entry(), "completion_chat", FALLBACK_CHAT_MODELS
+        )
+        step_schema[vol.Optional(CONF_CHAT_MODEL, default=RECOMMENDED_CHAT_MODEL)] = (
+            SelectSelector(
+                SelectSelectorConfig(
+                    options=model_options,
+                    mode=SelectSelectorMode.DROPDOWN,
+                    custom_value=True,
+                )
+            )
+        )
 
         if self._subentry_type == "conversation":
             step_schema.update(
@@ -376,21 +418,7 @@ class MistralSubentryFlowHandler(ConfigSubentryFlow):
                 data=options,
             )
 
-        model_options = await _async_get_model_options(
-            self._get_entry(), "completion_chat", FALLBACK_CHAT_MODELS
-        )
-
         step_schema: VolDictType = {
-            vol.Optional(
-                CONF_CHAT_MODEL,
-                default=RECOMMENDED_CHAT_MODEL,
-            ): SelectSelector(
-                SelectSelectorConfig(
-                    options=model_options,
-                    mode=SelectSelectorMode.DROPDOWN,
-                    custom_value=True,
-                )
-            ),
             vol.Optional(
                 CONF_MAX_TOKENS,
                 default=RECOMMENDED_MAX_TOKENS,
@@ -412,7 +440,7 @@ class MistralSubentryFlowHandler(ConfigSubentryFlow):
                 default=RECOMMENDED_REASONING_EFFORT,
             ): SelectSelector(
                 SelectSelectorConfig(
-                    options=["none", "high"],
+                    options=REASONING_EFFORTS,
                     mode=SelectSelectorMode.DROPDOWN,
                 )
             ),
@@ -486,7 +514,7 @@ class MistralSubentrySTTFlowHandler(ConfigSubentryFlow):
             step_schema[vol.Required(CONF_NAME, default=DEFAULT_STT_NAME)] = str
 
         model_options = await _async_get_model_options(
-            self._get_entry(), "audio_transcription", FALLBACK_STT_MODELS
+            self.hass, self._get_entry(), "audio_transcription", FALLBACK_STT_MODELS
         )
 
         step_schema.update(
@@ -549,10 +577,20 @@ class MistralSubentryTTSFlowHandler(ConfigSubentryFlow):
         if self._is_new:
             step_schema[vol.Required(CONF_NAME, default=DEFAULT_TTS_NAME)] = str
 
+        model_options = await _async_get_model_options(
+            self.hass, self._get_entry(), "audio_speech", FALLBACK_TTS_MODELS
+        )
+
         step_schema.update(
             {
-                vol.Optional(CONF_TTS_VOICE, default=""): TextSelector(
-                    TextSelectorConfig(type=TextSelectorType.TEXT)
+                vol.Optional(
+                    CONF_CHAT_MODEL, default=RECOMMENDED_TTS_MODEL
+                ): SelectSelector(
+                    SelectSelectorConfig(
+                        options=model_options,
+                        mode=SelectSelectorMode.DROPDOWN,
+                        custom_value=True,
+                    )
                 ),
             }
         )

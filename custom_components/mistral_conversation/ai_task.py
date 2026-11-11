@@ -12,13 +12,13 @@ from homeassistant.helpers.entity_platform import (
     AddConfigEntryEntitiesCallback,
 )
 from homeassistant.util.json import json_loads
-from mistralai.client.errors import SDKError
 from mistralai.client.models import MessageOutputEntry, TextChunk, ToolFileChunk
 
 from . import MistralConfigEntry
 from .const import (
     BACKOFF_MAX_RETRIES,
     CONF_CHAT_MODEL,
+    DOMAIN,
     RECOMMENDED_IMAGE_MODEL,
 )
 from .entity import (
@@ -26,6 +26,8 @@ from .entity import (
     async_backoff,
     async_prepare_files_for_prompt,
 )
+from .errors import MISTRAL_CONNECTION_ERRORS, MistralAPIError
+from .models import async_model_supports_vision
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigSubentry
@@ -120,6 +122,12 @@ class MistralTaskEntity(ai_task.AITaskEntity, MistralBaseLLMEntity):
 
         inputs: str | list[dict[str, Any]] = user_message.content
         if user_message.attachments:
+            if await async_model_supports_vision(self.hass, self.entry, model) is False:
+                raise HomeAssistantError(
+                    translation_domain=DOMAIN,
+                    translation_key="model_does_not_support_vision",
+                    translation_placeholders={"model": model},
+                )
             files = await async_prepare_files_for_prompt(
                 self.hass,
                 [(a.path, a.mime_type) for a in user_message.attachments],
@@ -145,19 +153,25 @@ class MistralTaskEntity(ai_task.AITaskEntity, MistralBaseLLMEntity):
                     store=False,
                 )
                 break
-            except SDKError as err:
+            except MistralAPIError as err:
                 if err.status_code == 429 and retries < BACKOFF_MAX_RETRIES:
                     await async_backoff(retries, "image generation")
                     retries += 1
                     continue
                 if err.status_code == 401:
                     _LOGGER.error("Authentication error with Mistral: %s", err)
+                    self.entry.async_start_reauth(self.hass)
                     raise HomeAssistantError(
                         "Authentication error with Mistral"
                     ) from err
                 _LOGGER.error("Error generating image with Mistral: %s", err)
                 raise HomeAssistantError(
                     f"Error generating image: {err.message}"
+                ) from err
+            except MISTRAL_CONNECTION_ERRORS as err:
+                _LOGGER.error("Could not reach Mistral: %r", err)
+                raise HomeAssistantError(
+                    f"Could not reach Mistral: {str(err) or type(err).__name__}"
                 ) from err
 
         response_text = ""
@@ -185,8 +199,8 @@ class MistralTaskEntity(ai_task.AITaskEntity, MistralBaseLLMEntity):
         try:
             download = await client.files.download_async(file_id=image_chunk.file_id)
             image_data = await download.aread()
-        except SDKError as err:
-            _LOGGER.error("Error downloading generated image: %s", err)
+        except (MistralAPIError, *MISTRAL_CONNECTION_ERRORS) as err:
+            _LOGGER.error("Error downloading generated image: %r", err)
             raise HomeAssistantError("Error downloading generated image") from err
 
         mime_type = None

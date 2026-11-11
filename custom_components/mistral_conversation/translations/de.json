@@ -17,6 +17,7 @@
       }
     },
     "error": {
+      "cannot_connect": "Verbindung fehlgeschlagen",
       "invalid_auth": "Ungültiger API-Schlüssel",
       "unknown": "Unerwarteter Fehler"
     },
@@ -34,15 +35,17 @@
       },
       "step": {
         "init": {
-          "title": "Mistral-Konversation",
+          "title": "Mistral AI",
           "description": "Diesen Konversationsagenten einrichten.",
           "data": {
             "name": "Name",
+            "chat_model": "Modell",
             "prompt": "Anweisungen",
             "llm_hass_api": "Home Assistant steuern",
             "recommended": "Empfohlene Modelleinstellungen verwenden"
           },
           "data_description": {
+            "chat_model": "Modell für diesen Agenten. Mit 👁️ markierte Modelle akzeptieren Bilder (z. B. Kamerabilder).",
             "prompt": "Anweisungen für die KI, wie sie antworten soll und was sie tun darf.",
             "llm_hass_api": "Erlaube der KI, Home Assistant-Dienste aufzurufen und Zustände zu lesen."
           }
@@ -51,7 +54,6 @@
           "title": "Erweiterte Einstellungen",
           "description": "Feinabstimmung der Modellparameter.",
           "data": {
-            "chat_model": "Modell",
             "max_tokens": "Maximale Tokens",
             "top_p": "Top P",
             "temperature": "Temperatur",
@@ -60,12 +62,11 @@
             "web_search": "Websuche"
           },
           "data_description": {
-            "chat_model": "Chat-Modell für Vervollständigungen.",
             "max_tokens": "Maximale Anzahl an Tokens in der Antwort.",
             "top_p": "Nucleus-Sampling (0–1).",
             "temperature": "Zufälligkeit (0–1,5). Niedriger = deterministischer.",
             "safe_prompt": "Aktiviert die integrierten Sicherheitsmaßnahmen von Mistral.",
-            "reasoning_effort": "Steuert, wie stark das Modell vor der Antwort nachdenkt. 'high' fügt einen Denkschritt mit höherem Tokenverbrauch hinzu.",
+            "reasoning_effort": "Steuert, wie stark das Modell vor der Antwort nachdenkt. Höhere Stufen denken länger und verbrauchen mehr Tokens.",
             "web_search": "Erlaube dem Modell, im Web nach aktuellen Informationen zu suchen."
           }
         }
@@ -87,14 +88,17 @@
           "description": "Diesen KI-Aufgabenagenten einrichten.",
           "data": {
             "name": "Name",
+            "chat_model": "Modell",
             "recommended": "Empfohlene Modelleinstellungen verwenden"
+          },
+          "data_description": {
+            "chat_model": "Modell für KI-Aufgaben. Mit 👁️ markierte Modelle akzeptieren Bilder (z. B. Kamerabilder)."
           }
         },
         "advanced": {
           "title": "Erweiterte Einstellungen",
           "description": "Feinabstimmung der Modellparameter.",
           "data": {
-            "chat_model": "Modell",
             "max_tokens": "Maximale Tokens",
             "top_p": "Top P",
             "temperature": "Temperatur",
@@ -102,12 +106,11 @@
             "reasoning_effort": "Reasoning-Aufwand"
           },
           "data_description": {
-            "chat_model": "Modell für KI-Aufgaben.",
             "max_tokens": "Maximale Anzahl an Tokens in der Antwort.",
             "top_p": "Nucleus-Sampling (0–1).",
             "temperature": "Zufälligkeit (0–1,5). Niedriger = deterministischer.",
             "safe_prompt": "Aktiviert die integrierten Sicherheitsmaßnahmen von Mistral.",
-            "reasoning_effort": "Steuert, wie stark das Modell vor der Antwort nachdenkt. 'high' fügt einen Denkschritt mit höherem Tokenverbrauch hinzu."
+            "reasoning_effort": "Steuert, wie stark das Modell vor der Antwort nachdenkt. Höhere Stufen denken länger und verbrauchen mehr Tokens."
           }
         }
       },
@@ -152,10 +155,10 @@
           "description": "Voxtral TTS einrichten.",
           "data": {
             "name": "Name",
-            "tts_voice": "Stimm-ID"
+            "chat_model": "Modell"
           },
           "data_description": {
-            "tts_voice": "Die zu verwendende Stimm-ID (z. B. 'jessica'). Leer lassen für die Standardstimme."
+            "chat_model": "Das Voxtral-Modell für die Sprachausgabe."
           }
         }
       },
@@ -184,6 +187,9 @@
   "exceptions": {
     "invalid_config_entry": {
       "message": "Ungültiger Konfigurationseintrag: {config_entry}"
+    },
+    "model_does_not_support_vision": {
+      "message": "{model} unterstützt keine Bilder. Konfiguriere diesen Agenten neu und wähle ein mit 👁️ markiertes Modell oder entferne den Bildanhang."
     }
   }
 }

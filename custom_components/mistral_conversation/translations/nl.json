@@ -17,6 +17,7 @@
       }
     },
     "error": {
+      "cannot_connect": "Kan geen verbinding maken",
       "invalid_auth": "Ongeldige API-sleutel",
       "unknown": "Onverwachte fout"
     },
@@ -34,15 +35,17 @@
       },
       "step": {
         "init": {
-          "title": "Mistral-gesprek",
+          "title": "Mistral AI",
           "description": "Stel deze gespreksagent in.",
           "data": {
             "name": "Naam",
+            "chat_model": "Model",
             "prompt": "Instructies",
             "llm_hass_api": "Home Assistant besturen",
             "recommended": "Aanbevolen modelinstellingen gebruiken"
           },
           "data_description": {
+            "chat_model": "Model voor deze agent. Modellen gemarkeerd met 👁️ accepteren afbeeldingen (bijv. camerabeelden).",
             "prompt": "Instructies voor de AI over hoe te reageren en wat het mag doen.",
             "llm_hass_api": "Laat de AI Home Assistant-services aanroepen en toestanden lezen."
           }
@@ -51,7 +54,6 @@
           "title": "Geavanceerde instellingen",
           "description": "Modelparameters fijn afstellen.",
           "data": {
-            "chat_model": "Model",
             "max_tokens": "Maximaal aantal tokens",
             "top_p": "Top P",
             "temperature": "Temperatuur",
@@ -60,12 +62,11 @@
             "web_search": "Webzoekopdracht"
           },
           "data_description": {
-            "chat_model": "Chatmodel voor aanvullingen.",
             "max_tokens": "Maximaal aantal tokens in het antwoord.",
             "top_p": "Nucleus sampling (0–1).",
             "temperature": "Willekeur (0–1,5). Lager = meer deterministisch.",
             "safe_prompt": "Schakel de ingebouwde veiligheidsgrenzen van Mistral in.",
-            "reasoning_effort": "Bepaalt hoeveel het model nadenkt voordat het antwoordt. 'high' voegt een denkstap toe met een hoger tokenverbruik.",
+            "reasoning_effort": "Bepaalt hoeveel het model nadenkt voordat het antwoordt. Hogere niveaus denken langer en verbruiken meer tokens.",
             "web_search": "Laat het model op het web zoeken naar actuele informatie."
           }
         }
@@ -87,14 +88,17 @@
           "description": "Stel deze AI-taakagent in.",
           "data": {
             "name": "Naam",
+            "chat_model": "Model",
             "recommended": "Aanbevolen modelinstellingen gebruiken"
+          },
+          "data_description": {
+            "chat_model": "Model voor AI-taken. Modellen gemarkeerd met 👁️ accepteren afbeeldingen (bijv. camerabeelden)."
           }
         },
         "advanced": {
           "title": "Geavanceerde instellingen",
           "description": "Modelparameters fijn afstellen.",
           "data": {
-            "chat_model": "Model",
             "max_tokens": "Maximaal aantal tokens",
             "top_p": "Top P",
             "temperature": "Temperatuur",
@@ -102,12 +106,11 @@
             "reasoning_effort": "Redeneerinspanning"
           },
           "data_description": {
-            "chat_model": "Model voor AI-taken.",
             "max_tokens": "Maximaal aantal tokens in het antwoord.",
             "top_p": "Nucleus sampling (0–1).",
             "temperature": "Willekeur (0–1,5). Lager = meer deterministisch.",
             "safe_prompt": "Schakel de ingebouwde veiligheidsgrenzen van Mistral in.",
-            "reasoning_effort": "Bepaalt hoeveel het model nadenkt voordat het antwoordt. 'high' voegt een denkstap toe met een hoger tokenverbruik."
+            "reasoning_effort": "Bepaalt hoeveel het model nadenkt voordat het antwoordt. Hogere niveaus denken langer en verbruiken meer tokens."
           }
         }
       },
@@ -152,10 +155,10 @@
           "description": "Voxtral TTS instellen.",
           "data": {
             "name": "Naam",
-            "tts_voice": "Stem-ID"
+            "chat_model": "Model"
           },
           "data_description": {
-            "tts_voice": "De te gebruiken stem-ID (bijv. 'jessica'). Laat leeg voor de standaardstem."
+            "chat_model": "Het Voxtral-model voor tekst-naar-spraak."
           }
         }
       },
@@ -184,6 +187,9 @@
   "exceptions": {
     "invalid_config_entry": {
       "message": "Ongeldig configuratie-item: {config_entry}"
+    },
+    "model_does_not_support_vision": {
+      "message": "{model} ondersteunt geen afbeeldingen. Configureer deze agent opnieuw en kies een model gemarkeerd met 👁️, of verwijder de afbeeldingsbijlage."
     }
   }
 }
