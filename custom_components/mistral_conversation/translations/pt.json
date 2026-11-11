@@ -17,6 +17,7 @@
       }
     },
     "error": {
+      "cannot_connect": "Falha na ligação",
       "invalid_auth": "Chave de API inválida",
       "unknown": "Erro inesperado"
     },
@@ -34,15 +35,17 @@
       },
       "step": {
         "init": {
-          "title": "Conversação Mistral",
+          "title": "Mistral AI",
           "description": "Configure este agente de conversação.",
           "data": {
             "name": "Nome",
+            "chat_model": "Modelo",
             "prompt": "Instruções",
             "llm_hass_api": "Controlar o Home Assistant",
             "recommended": "Usar configurações de modelo recomendadas"
           },
           "data_description": {
+            "chat_model": "Modelo para este agente. Os modelos marcados com 👁️ aceitam imagens (ex., capturas de câmara).",
             "prompt": "Instruções para a IA sobre como responder e o que pode fazer.",
             "llm_hass_api": "Permite que a IA chame serviços do Home Assistant e leia estados."
           }
@@ -51,7 +54,6 @@
           "title": "Configurações avançadas",
           "description": "Ajuste fino dos parâmetros do modelo.",
           "data": {
-            "chat_model": "Modelo",
             "max_tokens": "Tokens máximos",
             "top_p": "Top P",
             "temperature": "Temperatura",
@@ -60,12 +62,11 @@
             "web_search": "Pesquisa na web"
           },
           "data_description": {
-            "chat_model": "Modelo de chat para completações.",
             "max_tokens": "Número máximo de tokens na resposta.",
             "top_p": "Amostragem nucleus (0–1).",
             "temperature": "Aleatoriedade (0–1,5). Mais baixo = mais determinístico.",
             "safe_prompt": "Ativa as proteções de segurança integradas do Mistral.",
-            "reasoning_effort": "Controla o quanto o modelo raciocina antes de responder. 'high' adiciona um passo de raciocínio com maior uso de tokens.",
+            "reasoning_effort": "Controla o quanto o modelo raciocina antes de responder. Níveis mais altos pensam por mais tempo e usam mais tokens.",
             "web_search": "Permite que o modelo pesquise na web por informações atualizadas."
           }
         }
@@ -87,14 +88,17 @@
           "description": "Configure este agente de tarefas de IA.",
           "data": {
             "name": "Nome",
+            "chat_model": "Modelo",
             "recommended": "Usar configurações de modelo recomendadas"
+          },
+          "data_description": {
+            "chat_model": "Modelo para tarefas de IA. Os modelos marcados com 👁️ aceitam imagens (ex., capturas de câmara)."
           }
         },
         "advanced": {
           "title": "Configurações avançadas",
           "description": "Ajuste fino dos parâmetros do modelo.",
           "data": {
-            "chat_model": "Modelo",
             "max_tokens": "Tokens máximos",
             "top_p": "Top P",
             "temperature": "Temperatura",
@@ -102,12 +106,11 @@
             "reasoning_effort": "Esforço de raciocínio"
           },
           "data_description": {
-            "chat_model": "Modelo para tarefas de IA.",
             "max_tokens": "Número máximo de tokens na resposta.",
             "top_p": "Amostragem nucleus (0–1).",
             "temperature": "Aleatoriedade (0–1,5). Mais baixo = mais determinístico.",
             "safe_prompt": "Ativa as proteções de segurança integradas do Mistral.",
-            "reasoning_effort": "Controla o quanto o modelo raciocina antes de responder. 'high' adiciona um passo de raciocínio com maior uso de tokens."
+            "reasoning_effort": "Controla o quanto o modelo raciocina antes de responder. Níveis mais altos pensam por mais tempo e usam mais tokens."
           }
         }
       },
@@ -152,10 +155,10 @@
           "description": "Configurar o Voxtral TTS.",
           "data": {
             "name": "Nome",
-            "tts_voice": "ID de voz"
+            "chat_model": "Modelo"
           },
           "data_description": {
-            "tts_voice": "O ID da voz a usar (por ex., 'jessica'). Deixe vazio para a voz predefinida."
+            "chat_model": "O modelo Voxtral a usar para texto para fala."
           }
         }
       },
@@ -184,6 +187,9 @@
   "exceptions": {
     "invalid_config_entry": {
       "message": "Entrada de configuração inválida: {config_entry}"
+    },
+    "model_does_not_support_vision": {
+      "message": "{model} não suporta imagens. Reconfigure este agente e escolha um modelo marcado com 👁️, ou remova a imagem anexada."
     }
   }
 }

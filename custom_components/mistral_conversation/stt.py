@@ -13,7 +13,6 @@ from homeassistant.helpers.entity_platform import (
     AddConfigEntryEntitiesCallback,
 )
 from mistralai.client import Mistral
-from mistralai.client.errors import SDKError
 
 from . import MistralConfigEntry
 from .const import (
@@ -23,6 +22,7 @@ from .const import (
     RECOMMENDED_STT_MODEL,
 )
 from .entity import MistralBaseLLMEntity, async_backoff
+from .errors import MISTRAL_CONNECTION_ERRORS, MistralAPIError
 
 # Languages supported by Voxtral STT
 _STT_LANGUAGES = [
@@ -179,12 +179,15 @@ class MistralSTTEntity(stt.SpeechToTextEntity, MistralBaseLLMEntity):
                     if text
                     else stt.SpeechResultState.ERROR,
                 )
-            except SDKError as err:
+            except MistralAPIError as err:
                 if err.status_code == 429 and attempt < BACKOFF_MAX_RETRIES:
                     await async_backoff(attempt, "STT")
                     continue
 
                 LOGGER.error("Error transcribing audio with Mistral: %s", err)
+                return stt.SpeechResult(None, stt.SpeechResultState.ERROR)
+            except MISTRAL_CONNECTION_ERRORS as err:
+                LOGGER.error("Could not reach Mistral to transcribe audio: %r", err)
                 return stt.SpeechResult(None, stt.SpeechResultState.ERROR)
 
         LOGGER.error("Rate limited by Mistral STT after maximum retries")

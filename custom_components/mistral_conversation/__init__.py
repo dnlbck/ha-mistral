@@ -1,11 +1,11 @@
-"""The Mistral Conversation integration."""
+"""The Mistral AI integration."""
 
 from __future__ import annotations
 
 from types import MappingProxyType
 
 import voluptuous as vol
-from homeassistant.config_entries import ConfigEntry, ConfigSubentry
+from homeassistant.config_entries import ConfigEntry, ConfigEntryState, ConfigSubentry
 from homeassistant.const import CONF_API_KEY, Platform
 from homeassistant.core import (
     HomeAssistant,
@@ -34,13 +34,14 @@ from homeassistant.helpers import (
 from homeassistant.helpers.httpx_client import get_async_client
 from homeassistant.helpers.typing import ConfigType
 from mistralai.client import Mistral
-from mistralai.client.errors import SDKError
 from mistralai.client.models import TextChunk
 
+from . import models
 from .const import (
     CONF_CHAT_MODEL,
     CONF_MAX_TOKENS,
     CONF_PROMPT,
+    CONF_RECOMMENDED,
     CONF_SAFE_PROMPT,
     CONF_TEMPERATURE,
     CONF_TOP_P,
@@ -49,9 +50,8 @@ from .const import (
     DEFAULT_STT_NAME,
     DEFAULT_TTS_NAME,
     DOMAIN,
+    LEGACY_CHAT_MODEL,
     LOGGER,
-    RECOMMENDED_AI_TASK_OPTIONS,
-    RECOMMENDED_CHAT_MODEL,
     RECOMMENDED_MAX_TOKENS,
     RECOMMENDED_SAFE_PROMPT,
     RECOMMENDED_STT_OPTIONS,
@@ -59,6 +59,7 @@ from .const import (
     RECOMMENDED_TOP_P,
     RECOMMENDED_TTS_OPTIONS,
 )
+from .errors import MISTRAL_CONNECTION_ERRORS, MistralAPIError
 
 SERVICE_GENERATE_CONTENT = "generate_content"
 
@@ -69,7 +70,7 @@ type MistralConfigEntry = ConfigEntry[Mistral]
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
-    """Set up Mistral Conversation."""
+    """Set up Mistral AI."""
     await async_migrate_integration(hass)
 
     async def send_prompt(call: ServiceCall) -> ServiceResponse:
@@ -83,6 +84,8 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
                 translation_key="invalid_config_entry",
                 translation_placeholders={"config_entry": entry_id},
             )
+        if entry.state is not ConfigEntryState.LOADED:
+            raise ServiceValidationError(f"{entry.title} is not loaded")
 
         # Get first conversation subentry for options
         conversation_subentry = next(
@@ -96,9 +99,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         if not conversation_subentry:
             raise ServiceValidationError("No conversation configuration found")
 
-        model: str = conversation_subentry.data.get(
-            CONF_CHAT_MODEL, RECOMMENDED_CHAT_MODEL
-        )
+        model: str = conversation_subentry.data.get(CONF_CHAT_MODEL, LEGACY_CHAT_MODEL)
         client: Mistral = entry.runtime_data
 
         try:
@@ -118,12 +119,16 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
                     CONF_SAFE_PROMPT, RECOMMENDED_SAFE_PROMPT
                 ),
             )
-        except SDKError as err:
+        except MistralAPIError as err:
             if err.status_code == 401:
                 entry.async_start_reauth(hass)
                 raise HomeAssistantError("Authentication error") from err
             raise HomeAssistantError(
                 f"Error generating content: {err.message}"
+            ) from err
+        except MISTRAL_CONNECTION_ERRORS as err:
+            raise HomeAssistantError(
+                f"Could not reach Mistral: {str(err) or type(err).__name__}"
             ) from err
 
         if not response or not response.choices:
@@ -155,20 +160,26 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: MistralConfigEntry) -> bool:
-    """Set up Mistral Conversation from a config entry."""
+    """Set up Mistral AI from a config entry."""
     client = Mistral(
         api_key=entry.data[CONF_API_KEY],
         async_client=get_async_client(hass),
     )
 
+    entry.runtime_data = client
+
     try:
-        await client.models.list_async()
-    except SDKError as err:
+        # Validates the API key and seeds the cached model capability list
+        await models.async_get_model_cards(hass, entry, force_refresh=True)
+    except MistralAPIError as err:
         if err.status_code == 401:
             raise ConfigEntryAuthFailed(err) from err
         raise ConfigEntryNotReady(err) from err
-
-    entry.runtime_data = client
+    except MISTRAL_CONNECTION_ERRORS as err:
+        # Typically no network yet after a restart; Home Assistant retries
+        raise ConfigEntryNotReady(
+            f"Could not reach Mistral: {str(err) or type(err).__name__}"
+        ) from err
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
@@ -179,7 +190,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: MistralConfigEntry) -> b
 
 async def async_unload_entry(hass: HomeAssistant, entry: MistralConfigEntry) -> bool:
     """Unload Mistral."""
-    return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+    if not await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
+        return False
+    models.async_forget_model_cards(hass, entry)
+    return True
 
 
 async def async_update_options(hass: HomeAssistant, entry: MistralConfigEntry) -> None:
@@ -348,7 +362,9 @@ def _add_ai_task_subentry(hass: HomeAssistant, entry: MistralConfigEntry) -> Non
     hass.config_entries.async_add_subentry(
         entry,
         ConfigSubentry(
-            data=MappingProxyType(RECOMMENDED_AI_TASK_OPTIONS),
+            # No model: an install old enough to be migrated keeps the
+            # defaults it has been running with
+            data=MappingProxyType({CONF_RECOMMENDED: True}),
             subentry_type="ai_task_data",
             title=DEFAULT_AI_TASK_NAME,
             unique_id=None,

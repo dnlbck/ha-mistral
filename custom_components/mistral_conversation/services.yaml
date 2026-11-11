@@ -4,7 +4,7 @@ generate_content:
   fields:
     config_entry:
       name: Config entry
-      description: The Mistral Conversation config entry to use.
+      description: The Mistral AI config entry to use.
       required: true
       selector:
         config_entry:

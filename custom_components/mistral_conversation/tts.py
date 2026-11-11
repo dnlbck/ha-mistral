@@ -19,7 +19,6 @@ from homeassistant.helpers.entity_platform import (
     AddConfigEntryEntitiesCallback,
 )
 from mistralai.client import Mistral
-from mistralai.client.errors import SDKError
 
 from . import MistralConfigEntry
 from .const import (
@@ -30,6 +29,7 @@ from .const import (
     RECOMMENDED_TTS_MODEL,
 )
 from .entity import MistralBaseLLMEntity, async_backoff
+from .errors import MISTRAL_CONNECTION_ERRORS, MistralAPIError
 
 # Languages supported by Voxtral TTS
 _TTS_LANGUAGES = [
@@ -56,8 +56,8 @@ async def _async_fetch_voices(client: Mistral) -> list[Voice]:
     while True:
         try:
             page = await client.audio.voices.list_async(limit=limit, offset=offset)
-        except SDKError:
-            LOGGER.warning("Failed to fetch voices from Mistral API")
+        except (MistralAPIError, *MISTRAL_CONNECTION_ERRORS) as err:
+            LOGGER.warning("Failed to fetch voices from Mistral API: %r", err)
             break
         if not page or not page.items:
             break
@@ -103,19 +103,18 @@ class MistralTTSEntity(TextToSpeechEntity, MistralBaseLLMEntity):
         """Initialize the entity."""
         super().__init__(entry, subentry)
         self._attr_name = subentry.title
+        # Shared by all TTS entities of the config entry
         self._voices = voices
-        # Prefer a neutral voice as the default
-        self._default_voice_id = self._pick_default_voice(voices)
 
-    @staticmethod
-    def _pick_default_voice(voices: list[Voice]) -> str | None:
+    @property
+    def _default_voice_id(self) -> str | None:
         """Pick a sensible default voice, preferring 'Neutral' variants."""
-        if not voices:
+        if not self._voices:
             return None
-        for v in voices:
+        for v in self._voices:
             if "neutral" in (v.name or "").lower():
                 return v.voice_id
-        return voices[0].voice_id
+        return self._voices[0].voice_id
 
     @property
     def supported_languages(self) -> list[str]:
@@ -151,6 +150,10 @@ class MistralTTSEntity(TextToSpeechEntity, MistralBaseLLMEntity):
         options = {**self.subentry.data, **(options or {})}
         client: Mistral = self.entry.runtime_data
         model = options.get(CONF_CHAT_MODEL, RECOMMENDED_TTS_MODEL)
+
+        if not self._voices:
+            # The voice list could not be fetched during setup, try again
+            self._voices.extend(await _async_fetch_voices(client))
 
         # Voice from options, subentry config, or first available
         voice_id = (
@@ -195,12 +198,15 @@ class MistralTTSEntity(TextToSpeechEntity, MistralBaseLLMEntity):
                 audio_bytes = base64.b64decode(response.audio_data)
                 return (response_format, audio_bytes)
 
-            except SDKError as err:
+            except MistralAPIError as err:
                 if err.status_code == 429 and attempt < BACKOFF_MAX_RETRIES:
                     await async_backoff(attempt, "TTS")
                     continue
 
                 LOGGER.error("Error generating TTS audio with Mistral: %s", err)
+                return (None, None)
+            except MISTRAL_CONNECTION_ERRORS as err:
+                LOGGER.error("Could not reach Mistral to generate speech: %r", err)
                 return (None, None)
 
         LOGGER.error("Rate limited by Mistral TTS after maximum retries")
