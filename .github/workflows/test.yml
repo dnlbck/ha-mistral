@@ -1,0 +1,25 @@
+name: Test
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  pytest:
+    name: Pytest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+      # The harness pins the Home Assistant release the tests run against
+      - run: pip install -r .github/test-requirements.txt
+      - name: Install integration and Home Assistant component requirements
+        run: |
+          python tests/requirements.py > "$RUNNER_TEMP/requirements.txt"
+          pip install -r "$RUNNER_TEMP/requirements.txt"
+      - run: pytest
